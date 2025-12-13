@@ -23,3 +23,52 @@ class ModelBase(models.Model):
     class Meta:
         abstract = True  # O Django não criará uma tabela para esta classe
         ordering = ['-created_at']
+
+class Client(ModelBase):
+    name = models.CharField(max_length=150, verbose_name="Nome Completo")
+    email = models.EmailField(
+        unique=True, 
+        null=True, 
+        blank=True, 
+        verbose_name="E-mail"
+    )
+    phone = models.CharField(
+        max_length=20, 
+        blank=True, 
+        verbose_name="Telefone"
+    )
+    document = models.CharField(
+        max_length=20, 
+        blank=True, 
+        verbose_name="CPF/CNPJ",
+        help_text="Apenas números"
+    )
+
+    class Meta:
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clientes"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+class Supplier(ModelBase):
+    name = models.CharField(max_length=150, verbose_name="Razão Social/Nome")
+    email = models.EmailField(
+        null=True, 
+        blank=True, 
+        verbose_name="E-mail"
+    )
+    phone = models.CharField(
+        max_length=20, 
+        blank=True, 
+        verbose_name="Telefone"
+    )
+
+    class Meta:
+        verbose_name = "Fornecedor"
+        verbose_name_plural = "Fornecedores"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name

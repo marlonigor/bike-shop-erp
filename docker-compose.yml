@@ -1,15 +1,13 @@
 services:
   web:
     build: .
-    # Mapeia a pasta atual para /app dentro do container (Hot Reload)
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
       - db
-    # Comando para manter o container rodando por enquanto (ainda não temos o manage.py)
-    command: python -c "import time; time.sleep(9999)"
+    command: python manage.py runserver 0.0.0.0:8000
     environment:
       - DB_NAME=bikeshop
       - DB_USER=bikeshopuser

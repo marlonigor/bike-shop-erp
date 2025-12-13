@@ -39,6 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Apps do Projeto (Bike Shop ERP)
+    'core',
+    'catalog',
+    'stock',
+    'sales',
+    'services',
 ]
 
 MIDDLEWARE = [

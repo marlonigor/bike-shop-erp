@@ -22,3 +22,14 @@ class Category(ModelBase):
 
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"
+
+class Brand(ModelBase):
+    name = models.CharField(max_length=100, verbose_name="Nome")
+
+    class Meta:
+        verbose_name = "Marca"
+        verbose_name_plural = "Marcas"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name

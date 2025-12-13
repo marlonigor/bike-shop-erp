@@ -1,0 +1,29 @@
+services:
+  web:
+    build: .
+    # Mapeia a pasta atual para /app dentro do container (Hot Reload)
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    # Comando para manter o container rodando por enquanto (ainda não temos o manage.py)
+    command: python -c "import time; time.sleep(9999)"
+    environment:
+      - DB_NAME=bikeshop
+      - DB_USER=bikeshopuser
+      - DB_PASSWORD=password123
+      - DB_HOST=db
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=bikeshop
+      - POSTGRES_USER=bikeshopuser
+      - POSTGRES_PASSWORD=password123
+
+volumes:
+  postgres_data:

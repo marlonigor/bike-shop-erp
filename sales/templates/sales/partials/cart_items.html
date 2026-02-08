@@ -1,0 +1,29 @@
+{% if cart %}
+<table style="width: 100%;">
+    <tbody>
+        {% for item in cart %}
+        <tr>
+            <td>
+                <strong>{{ item.name }}</strong>
+                <br>
+                <small style="color: var(--color-text-muted);">{{ item.sku }}</small>
+            </td>
+            <td style="text-align: right;">
+                {{ item.quantity }} x R$ {{ item.unit_price }}
+                <br>
+                <strong>R$ {{ item.total }}</strong>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: var(--space-md); padding-top: var(--space-md); border-top: 2px solid var(--color-border);">
+    <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 700;">
+        <span>Total:</span>
+        <span style="color: var(--color-primary);">R$ {{ cart_total|floatformat:2 }}</span>
+    </div>
+</div>
+{% else %}
+<p style="color: var(--color-text-muted); text-align: center;">Carrinho vazio</p>
+{% endif %}

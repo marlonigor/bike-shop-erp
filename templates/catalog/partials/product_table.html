@@ -1,0 +1,37 @@
+{% if products %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>SKU</th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th class="text-right">Custo</th>
+            <th class="text-right">Preço</th>
+            <th class="text-center">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td><code>{{ product.sku }}</code></td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category.name|default:"—" }}</td>
+            <td class="text-right">R$ {{ product.cost|floatformat:2 }}</td>
+            <td class="text-right">R$ {{ product.price|floatformat:2 }}</td>
+            <td class="text-center actions">
+                <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-sm">✏️</a>
+                <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:product_delete' product.pk %}"
+                    hx-confirm="Deseja realmente excluir '{{ product.name }}'?">
+                    🗑️
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>Nenhum produto encontrado.</p>
+    <a href="{% url 'catalog:product_create' %}" class="btn btn-primary">Criar primeiro produto</a>
+</div>
+{% endif %}

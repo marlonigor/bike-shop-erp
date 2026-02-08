@@ -1,0 +1,20 @@
+{% for result in results %}
+<div
+    style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm); border-bottom: 1px solid var(--color-border);">
+    <div>
+        <strong>{{ result.product.name }}</strong>
+        <br>
+        <small style="color: var(--color-text-muted);">{{ result.product.sku }} | Estoque: {{ result.stock }}</small>
+    </div>
+    <div style="display: flex; align-items: center; gap: var(--space-sm);">
+        <span style="font-weight: 600;">R$ {{ result.product.price|floatformat:2 }}</span>
+        <button class="btn btn-primary" hx-post="{% url 'sales:cart_add' %}"
+            hx-vals='{"product_id": "{{ result.product.id }}", "quantity": 1}' hx-target="#cart-items" {% if
+            result.stock < 1 %}disabled{% endif %}>
+            Adicionar
+        </button>
+    </div>
+</div>
+{% empty %}
+<p style="color: var(--color-text-muted); text-align: center;">Nenhum produto encontrado</p>
+{% endfor %}

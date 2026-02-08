@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Movimentação - Bike Shop ERP{% endblock %}
+{% block page_title %}Registrar Movimentação de Estoque{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px;">
+    <form method="post" hx-post hx-swap="none">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label class="form-label" for="product_id">Produto *</label>
+            <select class="form-input" id="product_id" name="product_id" required>
+                <option value="">Selecione...</option>
+                {% for product in products %}
+                <option value="{{ product.id }}">{{ product.sku }} - {{ product.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="warehouse_id">Depósito *</label>
+            <select class="form-input" id="warehouse_id" name="warehouse_id" required>
+                <option value="">Selecione...</option>
+                {% for wh in warehouses %}
+                <option value="{{ wh.id }}">{{ wh.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="movement_type">Tipo de Movimentação *</label>
+            <select class="form-input" id="movement_type" name="movement_type" required>
+                <option value="IN">Entrada</option>
+                <option value="OUT">Saída</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="quantity">Quantidade *</label>
+            <input type="number" class="form-input" id="quantity" name="quantity" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="reason">Motivo</label>
+            <input type="text" class="form-input" id="reason" name="reason" placeholder="Ex: Recebimento de fornecedor">
+        </div>
+
+        <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
+            <button type="submit" class="btn btn-primary">Registrar</button>
+            <a href="{% url 'stock:stock_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

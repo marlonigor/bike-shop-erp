@@ -1,0 +1,42 @@
+{% if stocks %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Depósito</th>
+            <th class="text-center">Quantidade</th>
+            <th class="text-center">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for stock in stocks %}
+        <tr>
+            <td>
+                <span class="product-name">{{ stock.product.name }}</span>
+                <span class="product-sku">{{ stock.product.sku }}</span>
+            </td>
+            <td>{{ stock.warehouse.name }}</td>
+            <td class="text-center">
+                <span
+                    class="quantity {% if stock.quantity < 5 %}danger{% elif stock.quantity < 10 %}warning{% endif %}">
+                    {{ stock.quantity }}
+                </span>
+            </td>
+            <td class="text-center">
+                {% if stock.quantity == 0 %}
+                <span class="badge badge-danger">Sem Estoque</span>
+                {% elif stock.quantity < 5 %} <span class="badge badge-danger">Crítico</span>
+                    {% elif stock.quantity < 10 %} <span class="badge badge-warning">Baixo</span>
+                        {% else %}
+                        <span class="badge badge-success">OK</span>
+                        {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>Nenhum registro de estoque encontrado.</p>
+</div>
+{% endif %}

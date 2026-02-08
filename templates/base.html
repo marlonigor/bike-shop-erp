@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-BR" x-data="{ sidebarOpen: true, darkMode: localStorage.getItem('darkMode') !== 'false' }"
+    :class="{ 'light': !darkMode }">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bike Shop ERP - Sistema de Gestão para Lojas de Bicicletas">
+    <title>{% block title %}Bike Shop ERP{% endblock %}</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="app-container" :class="{ 'sidebar-collapsed': !sidebarOpen }">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" :class="{ 'open': sidebarOpen }">
+        <div class="sidebar-header">
+            <span class="logo">
+                <span>🚴</span>
+                <span>Bike Shop</span>
+            </span>
+            <button @click="sidebarOpen = !sidebarOpen" class="btn-icon" title="Toggle Sidebar">
+                <span x-text="sidebarOpen ? '◀' : '▶'"></span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="{% url 'catalog:product_list' %}"
+                class="nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">📦</span>
+                <span class="nav-text">Produtos</span>
+            </a>
+            <a href="{% url 'sales:pdv' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'pdv' %}active{% endif %}">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-text">PDV</span>
+            </a>
+            <a href="{% url 'stock:stock_list' %}"
+                class="nav-item {% if 'stock' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Estoque</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" class="btn-icon"
+                title="Toggle Theme">
+                <span x-text="darkMode ? '☀️' : '🌙'"></span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            <div class="header-actions">
+                {% block header_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <div class="content" id="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Toast Script -->
+    <script>
+        document.body.addEventListener('showToast', function (evt) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = evt.detail.message;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        });
+    </script>
+
+</body>
+
+</html>

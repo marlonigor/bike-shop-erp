@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Bike Shop ERP{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">R$ {{ total_vendas|floatformat:2 }}</div>
+        <div class="stat-label">Total em Vendas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ vendas_hoje }}</div>
+        <div class="stat-label">Vendas Realizadas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ produtos_ativos }}</div>
+        <div class="stat-label">Produtos Ativos</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--color-warning);">{{ produtos_baixo_estoque }}</div>
+        <div class="stat-label">Produtos com Baixo Estoque</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+    <!-- Últimas Vendas -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Últimas Vendas</h2>
+            <a href="{% url 'pdv' %}" class="btn btn-secondary">Ver todas</a>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venda in ultimas_vendas %}
+                    <tr>
+                        <td>{{ venda.client.name }}</td>
+                        <td>R$ {{ venda.total_amount|floatformat:2 }}</td>
+                        <td>{{ venda.created_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--color-text-muted);">
+                            Nenhuma venda registrada
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Alertas de Estoque -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Alertas de Estoque</h2>
+            <a href="{% url 'stock_list' %}" class="btn btn-secondary">Ver todos</a>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Depósito</th>
+                        <th>Quantidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in alertas_estoque %}
+                    <tr>
+                        <td>{{ stock.product.name }}</td>
+                        <td>{{ stock.warehouse.name }}</td>
+                        <td
+                            style="color: {% if stock.quantity < 5 %}var(--color-danger){% else %}var(--color-warning){% endif %};">
+                            {{ stock.quantity }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--color-text-muted);">
+                            Nenhum alerta de estoque
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

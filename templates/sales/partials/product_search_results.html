@@ -1,0 +1,28 @@
+{% if results %}
+<ul class="product-list">
+    {% for item in results %}
+    <li class="product-item">
+        <div class="product-info">
+            <span class="product-name">{{ item.product.name }}</span>
+            <span class="product-sku">{{ item.product.sku }}</span>
+        </div>
+        <div class="product-details">
+            <span class="product-price">R$ {{ item.product.price|floatformat:2 }}</span>
+            <span class="product-stock {% if item.stock < 5 %}low{% endif %}">
+                Estoque: {{ item.stock }}
+            </span>
+        </div>
+        <form hx-post="{% url 'sales:cart_add' %}" hx-target="#cart-items" hx-swap="innerHTML">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" value="{{ item.product.id }}">
+            <input type="number" name="quantity" value="1" min="1" max="{{ item.stock }}" class="qty-input">
+            <button type="submit" class="btn btn-sm btn-primary" {% if item.stock==0 %}disabled{% endif %}>
+                + Adicionar
+            </button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty-results">Nenhum produto encontrado.</p>
+{% endif %}

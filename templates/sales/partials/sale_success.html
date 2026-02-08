@@ -1,0 +1,9 @@
+<div class="sale-success">
+    <div class="success-icon">✅</div>
+    <h2>Venda Realizada!</h2>
+    <p>Código: <code>{{ sale.id }}</code></p>
+    <p>Total: <strong>R$ {{ sale.total_amount|floatformat:2 }}</strong></p>
+    <button class="btn btn-primary" onclick="window.location.reload()">
+        Nova Venda
+    </button>
+</div>

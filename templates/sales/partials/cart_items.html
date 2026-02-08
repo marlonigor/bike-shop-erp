@@ -1,0 +1,35 @@
+{% if cart %}
+<table class="table cart-table">
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th class="text-center">Qtd</th>
+            <th class="text-right">Unit.</th>
+            <th class="text-right">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in cart %}
+        <tr>
+            <td>
+                <span class="item-name">{{ item.name }}</span>
+                <span class="item-sku">{{ item.sku }}</span>
+            </td>
+            <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-right">R$ {{ item.unit_price }}</td>
+            <td class="text-right">R$ {{ item.total }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.getElementById('cart-total').textContent = 'R$ {{ cart_total|floatformat:2 }}';
+    document.getElementById('cart-total-header').textContent = 'R$ {{ cart_total|floatformat:2 }}';
+</script>
+{% else %}
+<div class="empty-cart">
+    <p>🛒 Carrinho vazio</p>
+    <small>Busque produtos para adicionar</small>
+</div>
+{% endif %}

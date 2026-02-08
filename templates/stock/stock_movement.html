@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Movimentar Estoque - Bike Shop ERP{% endblock %}
+{% block page_title %}Movimentação de Estoque{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    <form method="post" hx-post="{% url 'stock:stock_movement' %}" hx-swap="none">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="product_id">Produto *</label>
+            <select id="product_id" name="product_id" required>
+                <option value="">Selecione o produto...</option>
+                {% for product in products %}
+                <option value="{{ product.id }}">{{ product.name }} ({{ product.sku }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="warehouse_id">Depósito *</label>
+            <select id="warehouse_id" name="warehouse_id" required>
+                <option value="">Selecione o depósito...</option>
+                {% for wh in warehouses %}
+                <option value="{{ wh.id }}">{{ wh.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="movement_type">Tipo *</label>
+                <select id="movement_type" name="movement_type" required>
+                    <option value="IN">➕ Entrada</option>
+                    <option value="OUT">➖ Saída</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantidade *</label>
+                <input type="number" id="quantity" name="quantity" min="1" required placeholder="0">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="reason">Motivo</label>
+            <textarea id="reason" name="reason" rows="2"
+                placeholder="Ex: Compra de fornecedor, ajuste de inventário..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'stock:stock_list' %}" class="btn">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Registrar Movimentação</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

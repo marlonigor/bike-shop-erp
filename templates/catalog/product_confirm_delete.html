@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Produto - Bike Shop ERP{% endblock %}
+{% block page_title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    <div class="confirm-delete">
+        <p class="warning-text">
+            ⚠️ Você está prestes a desativar o produto:
+        </p>
+        <p class="product-name">{{ product.name }}</p>
+        <p class="product-sku">SKU: {{ product.sku }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'catalog:product_list' %}" class="btn">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

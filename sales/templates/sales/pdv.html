@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}PDV - Bike Shop ERP{% endblock %}
+{% block page_title %}Ponto de Venda{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 400px; gap: var(--space-lg);">
+
+    <!-- Busca de Produtos -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Buscar Produtos</h2>
+        </div>
+
+        <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-md);">
+            <select class="form-input" id="warehouse-select" style="max-width: 200px;">
+                <option value="">Selecione o depósito</option>
+                {% for wh in warehouses %}
+                <option value="{{ wh.id }}">{{ wh.name }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="text" class="form-input" placeholder="Buscar produto..." id="product-search"
+                hx-get="{% url 'sales:product_search' %}" hx-trigger="keyup changed delay:300ms"
+                hx-target="#search-results" hx-include="#warehouse-select">
+        </div>
+
+        <div id="search-results">
+            <p style="color: var(--color-text-muted); text-align: center;">
+                Digite para buscar produtos...
+            </p>
+        </div>
+    </div>
+
+    <!-- Carrinho -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Carrinho</h2>
+        </div>
+
+        <div id="cart-items">
+            {% include 'sales/partials/cart_items.html' %}
+        </div>
+
+        <hr style="border-color: var(--color-border); margin: var(--space-md) 0;">
+
+        <form method="post" action="{% url 'sales:sale_complete' %}" hx-post="{% url 'sales:sale_complete' %}"
+            hx-target="#cart-items">
+            {% csrf_token %}
+            <input type="hidden" name="warehouse_id" id="sale-warehouse">
+
+            <div class="form-group">
+                <label class="form-label">Cliente</label>
+                <select class="form-input" name="client_id" required>
+                    <option value="">Selecione...</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Finalizar Venda
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('warehouse-select').addEventListener('change', function () {
+        document.getElementById('sale-warehouse').value = this.value;
+    });
+</script>
+{% endblock %}

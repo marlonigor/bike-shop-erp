@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Bike Shop ERP{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+            <span class="stat-value">R$ {{ total_vendas|floatformat:2 }}</span>
+            <span class="stat-label">Total em Vendas</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🛒</div>
+        <div class="stat-content">
+            <span class="stat-value">{{ vendas_hoje }}</span>
+            <span class="stat-label">Vendas Finalizadas</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+            <span class="stat-value">{{ produtos_ativos }}</span>
+            <span class="stat-label">Produtos Ativos</span>
+        </div>
+    </div>
+
+    <div class="stat-card accent">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+            <span class="stat-value">{{ produtos_baixo_estoque }}</span>
+            <span class="stat-label">Baixo Estoque</span>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="dashboard-grid">
+    <!-- Últimas Vendas -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Últimas Vendas</h3>
+            <a href="{% url 'sales:pdv' %}" class="btn btn-sm">Ver Todas</a>
+        </div>
+        <div class="card-body">
+            {% if ultimas_vendas %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venda in ultimas_vendas %}
+                    <tr>
+                        <td><code>{{ venda.id|truncatechars:8 }}</code></td>
+                        <td>{{ venda.client.name|default:"—" }}</td>
+                        <td class="text-right">R$ {{ venda.total_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Nenhuma venda registrada.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Alertas de Estoque -->
+    <div class="card">
+        <div class="card-header">
+            <h3>⚠️ Alertas de Estoque</h3>
+            <a href="{% url 'stock:stock_list' %}?low_stock=1" class="btn btn-sm">Ver Todos</a>
+        </div>
+        <div class="card-body">
+            {% if alertas_estoque %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Depósito</th>
+                        <th>Qtd</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in alertas_estoque %}
+                    <tr class="{% if item.quantity < 5 %}danger{% endif %}">
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.warehouse.name }}</td>
+                        <td class="text-center"><span class="badge badge-danger">{{ item.quantity }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state success">✅ Estoque em dia!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

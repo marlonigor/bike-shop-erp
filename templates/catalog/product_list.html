@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Produtos - Bike Shop ERP{% endblock %}
+{% block page_title %}Produtos{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'catalog:product_create' %}" class="btn btn-primary">
+    + Novo Produto
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="filters-bar" x-data="{ filtersOpen: false }">
+    <div class="search-box">
+        <input type="text" name="q" placeholder="Buscar por nome ou SKU..." value="{{ search }}"
+            hx-get="{% url 'catalog:product_list' %}" hx-trigger="keyup changed delay:300ms" hx-target="#product-table"
+            hx-include="[name='category']">
+    </div>
+
+    <select name="category" hx-get="{% url 'catalog:product_list' %}" hx-trigger="change" hx-target="#product-table"
+        hx-include="[name='q']">
+        <option value="">Todas as categorias</option>
+        {% for cat in categories %}
+        <option value="{{ cat.id }}" {% if selected_category==cat.id|stringformat:"s" %}selected{% endif %}>
+            {{ cat.name }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+<!-- Tabela de Produtos -->
+<div id="product-table" hx-trigger="productListChanged from:body" hx-get="{% url 'catalog:product_list' %}">
+    {% include "catalog/partials/product_table.html" %}
+</div>
+{% endblock %}

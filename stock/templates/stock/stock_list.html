@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Estoque - Bike Shop ERP{% endblock %}
+{% block page_title %}Controle de Estoque{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'stock:stock_movement' %}" class="btn btn-primary">+ Movimentação</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <!-- Filtros -->
+    <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-lg);">
+        <select class="form-input" name="warehouse" hx-get="{% url 'stock:stock_list' %}" hx-trigger="change"
+            hx-target="#stock-table" style="max-width: 200px;">
+            <option value="">Todos os depósitos</option>
+            {% for wh in warehouses %}
+            <option value="{{ wh.id }}" {% if selected_warehouse==wh.id|stringformat:"s" %}selected{% endif %}>
+                {{ wh.name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <label style="display: flex; align-items: center; gap: var(--space-sm);">
+            <input type="checkbox" name="low_stock" value="1" hx-get="{% url 'stock:stock_list' %}" hx-trigger="change"
+                hx-target="#stock-table" {% if low_stock %}checked{% endif %}>
+            Apenas baixo estoque
+        </label>
+    </div>
+
+    <!-- Tabela -->
+    <div id="stock-table" hx-get="{% url 'stock:stock_list' %}" hx-trigger="stockListChanged from:body">
+        {% include 'stock/partials/stock_table.html' %}
+    </div>
+</div>
+{% endblock %}

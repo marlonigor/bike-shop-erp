@@ -1,0 +1,36 @@
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>SKU</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.category.name }}</td>
+                <td>R$ {{ product.price|floatformat:2 }}</td>
+                <td>
+                    <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-secondary">Editar</a>
+                    <button class="btn btn-danger" hx-post="{% url 'catalog:product_delete' product.pk %}"
+                        hx-confirm="Tem certeza que deseja excluir este produto?">
+                        Excluir
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: var(--color-text-muted);">
+                    Nenhum produto encontrado
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

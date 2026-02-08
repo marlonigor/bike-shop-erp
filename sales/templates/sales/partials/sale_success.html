@@ -1,0 +1,9 @@
+<div style="text-align: center; padding: var(--space-xl);">
+    <div style="font-size: 3rem;">✅</div>
+    <h2 style="color: var(--color-success); margin: var(--space-md) 0;">Venda Realizada!</h2>
+    <p>Venda #{{ sale.id|truncatechars:8 }}</p>
+    <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">
+        R$ {{ sale.total_amount|floatformat:2 }}
+    </p>
+    <button class="btn btn-primary" onclick="window.location.reload()">Nova Venda</button>
+</div>

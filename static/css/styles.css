@@ -432,13 +432,17 @@ body::before {
     display: flex;
     align-items: center;
     gap: var(--space-md);
+    margin-left: auto;
+    /* Empurra para a direita */
 }
+
 
 .content {
     width: 100%;
     padding: var(--space-xl);
     max-width: 1600px;
 }
+
 
 
 /* ============================================

@@ -1,0 +1,37 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Documento</th>
+            <th class="text-center">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in customers %}
+        <tr>
+            <td>
+                {{ customer.name }}
+                {% if not customer.active %}
+                <span class="badge badge-warning">Inativo</span>
+                {% endif %}
+            </td>
+            <td>{{ customer.email|default:"-" }}</td>
+            <td>{{ customer.phone|default:"-" }}</td>
+            <td>{{ customer.document|default:"-" }}</td>
+            <td class="text-center actions">
+                <a href="{% url 'customers:customer_edit' customer.pk %}" class="btn btn-sm">✏️</a>
+                <button class="btn btn-sm btn-danger" hx-post="{% url 'customers:customer_delete' customer.pk %}"
+                    hx-confirm="Deseja realmente excluir '{{ customer.name }}'?">
+                    🗑️
+                </button>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center">Nenhum cliente cadastrado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -66,6 +66,11 @@
                 <span class="nav-icon">📋</span>
                 <span class="nav-text">Estoque</span>
             </a>
+            <a href="{% url 'customers:customer_list' %}"
+                class="nav-item {% if 'customers' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Clientes</span>
+            </a>
 
         </nav>
 

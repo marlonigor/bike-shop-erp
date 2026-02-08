@@ -88,3 +88,43 @@ def product_delete(request, pk):
         return redirect('catalog:product_list')
     
     return render(request, 'catalog/product_confirm_delete.html', {'product': product})
+
+
+def product_detail(request, pk):
+    """Exibe detalhes completos de um produto."""
+    from stock.models import Stock
+    from sales.models import SaleItem
+    from decimal import Decimal
+    
+    product = get_object_or_404(Product.objects.select_related('category', 'brand'), pk=pk)
+    
+    # Calcular margem de lucro
+    if product.price > 0:
+        margin = ((product.price - product.cost) / product.price) * 100
+    else:
+        margin = Decimal('0.00')
+    
+    # Estoque por depósito
+    stock_by_warehouse = Stock.objects.filter(product=product).select_related('warehouse')
+    total_stock = sum(s.quantity for s in stock_by_warehouse)
+    
+    # Histórico de vendas (últimas 10)
+    sales_history = SaleItem.objects.filter(
+        product=product
+    ).select_related('sale', 'sale__client').order_by('-created_at')[:10]
+    
+    # Total vendido
+    total_sold = sum(item.quantity for item in sales_history)
+    total_revenue = sum(item.total_price for item in sales_history)
+    
+    context = {
+        'product': product,
+        'margin': margin,
+        'stock_by_warehouse': stock_by_warehouse,
+        'total_stock': total_stock,
+        'sales_history': sales_history,
+        'total_sold': total_sold,
+        'total_revenue': total_revenue,
+    }
+    
+    return render(request, 'catalog/product_detail.html', context)

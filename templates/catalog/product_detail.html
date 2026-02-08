@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Bike Shop ERP{% endblock %}
+{% block page_title %}Detalhes do Produto{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-primary">✏️ Editar</a>
+<a href="{% url 'catalog:product_list' %}" class="btn btn-secondary">← Voltar</a>
+{% endblock %}
+
+{% block content %}
+<!-- Product Header -->
+<div class="card" style="margin-bottom: var(--space-xl);">
+    <div class="product-header" style="display: flex; gap: var(--space-xl); align-items: flex-start;">
+        <div class="product-icon"
+            style="width: 100px; height: 100px; background: var(--gradient-primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 3rem; flex-shrink: 0;">
+            📦
+        </div>
+        <div class="product-info" style="flex: 1;">
+            <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: var(--space-sm);">{{ product.name }}</h2>
+            <p style="color: var(--color-text-muted); margin-bottom: var(--space-md);">
+                <code
+                    style="background: var(--color-glass); padding: 4px 8px; border-radius: 4px;">{{ product.sku }}</code>
+                {% if product.brand %}• {{ product.brand.name }}{% endif %}
+                • {{ product.category.name }}
+            </p>
+            <div style="display: flex; gap: var(--space-xl);">
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Preço
+                        de Venda</span>
+                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">R$ {{
+                        product.price|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Preço
+                        de Custo</span>
+                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-secondary);">R$ {{
+                        product.cost|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <span class="stat-value">{{ margin|floatformat:1 }}%</span>
+            <span class="stat-label">Margem de Lucro</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+            <span class="stat-value">{{ total_stock }}</span>
+            <span class="stat-label">Total em Estoque</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🛒</div>
+        <div class="stat-content">
+            <span class="stat-value">{{ total_sold }}</span>
+            <span class="stat-label">Unidades Vendidas</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+            <span class="stat-value">R$ {{ total_revenue|floatformat:2 }}</span>
+            <span class="stat-label">Receita Total</span>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="dashboard-grid">
+    <!-- Estoque por Depósito -->
+    <div class="card">
+        <div class="card-header">
+            <h3>📍 Estoque por Depósito</h3>
+        </div>
+        <div class="card-body">
+            {% if stock_by_warehouse %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Depósito</th>
+                        <th>Quantidade</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stock_by_warehouse %}
+                    <tr class="{% if stock.quantity < 5 %}danger{% endif %}">
+                        <td>{{ stock.warehouse.name }}</td>
+                        <td><strong>{{ stock.quantity }}</strong></td>
+                        <td>
+                            {% if stock.quantity < 5 %} <span class="badge badge-danger">Crítico</span>
+                                {% elif stock.quantity < 10 %} <span class="badge badge-warning">Baixo</span>
+                                    {% else %}
+                                    <span class="badge badge-success">OK</span>
+                                    {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Nenhum estoque registrado para este produto.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Histórico de Vendas -->
+    <div class="card">
+        <div class="card-header">
+            <h3>📈 Últimas Vendas</h3>
+        </div>
+        <div class="card-body">
+            {% if sales_history %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Cliente</th>
+                        <th>Qtd</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sales_history %}
+                    <tr>
+                        <td>{{ item.created_at|date:"d/m/Y" }}</td>
+                        <td>{{ item.sale.client.name|truncatechars:20 }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>R$ {{ item.total_price|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-state">Nenhuma venda registrada para este produto.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

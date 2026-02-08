@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Marcas - Bike Shop ERP{% endblock %}
+{% block page_title %}Marcas{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'catalog:brand_create' %}" class="btn btn-primary">+ Nova Marca</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" id="brand-table" hx-trigger="brandListChanged from:body" hx-get="{% url 'catalog:brand_list' %}">
+    {% if brands %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Produtos</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for brand in brands %}
+            <tr>
+                <td><strong>{{ brand.name }}</strong></td>
+                <td>{{ brand.products.count }}</td>
+                <td class="text-center actions">
+                    <a href="{% url 'catalog:brand_edit' brand.pk %}" class="btn btn-sm">✏️</a>
+                    <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:brand_delete' brand.pk %}"
+                        hx-confirm="Deseja realmente excluir '{{ brand.name }}'?">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>Nenhuma marca cadastrada.</p>
+        <a href="{% url 'catalog:brand_create' %}" class="btn btn-primary">Criar primeira marca</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

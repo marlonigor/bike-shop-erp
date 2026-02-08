@@ -46,6 +46,16 @@
                 <span class="nav-icon">📦</span>
                 <span class="nav-text">Produtos</span>
             </a>
+            <a href="{% url 'catalog:category_list' %}"
+                class="nav-item {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">🏷️</span>
+                <span class="nav-text">Categorias</span>
+            </a>
+            <a href="{% url 'catalog:brand_list' %}"
+                class="nav-item {% if 'brand' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">🏭</span>
+                <span class="nav-text">Marcas</span>
+            </a>
             <a href="{% url 'sales:pdv' %}"
                 class="nav-item {% if request.resolver_match.url_name == 'pdv' %}active{% endif %}">
                 <span class="nav-icon">🛒</span>
@@ -56,6 +66,7 @@
                 <span class="nav-icon">📋</span>
                 <span class="nav-text">Estoque</span>
             </a>
+
         </nav>
 
         <div class="sidebar-footer">

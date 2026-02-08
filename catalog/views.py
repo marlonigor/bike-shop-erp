@@ -126,3 +126,129 @@ def product_detail(request, pk):
     }
     
     return render(request, 'catalog/product_detail.html', context)
+
+
+# ============================================
+# Category CRUD
+# ============================================
+
+def category_list(request):
+    """Lista todas as categorias."""
+    categories = Category.objects.all()
+    return render(request, 'catalog/category_list.html', {'categories': categories})
+
+
+def category_create(request):
+    """Cria uma nova categoria."""
+    from .forms import CategoryForm
+    
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('HX-Request'):
+                return HttpResponse(status=204, headers={'HX-Trigger': 'categoryListChanged'})
+            return redirect('catalog:category_list')
+    else:
+        form = CategoryForm()
+    
+    return render(request, 'catalog/category_form.html', {'form': form})
+
+
+def category_edit(request, pk):
+    """Edita uma categoria existente."""
+    from .forms import CategoryForm
+    
+    category = get_object_or_404(Category, pk=pk)
+    
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('HX-Request'):
+                return HttpResponse(status=204, headers={'HX-Trigger': 'categoryListChanged'})
+            return redirect('catalog:category_list')
+    else:
+        form = CategoryForm(instance=category)
+    
+    return render(request, 'catalog/category_form.html', {'form': form, 'category': category})
+
+
+def category_delete(request, pk):
+    """Exclui uma categoria."""
+    from .models import Brand
+    
+    category = get_object_or_404(Category, pk=pk)
+    
+    if request.method == 'POST':
+        category.delete()
+        if request.headers.get('HX-Request'):
+            return HttpResponse(status=204, headers={'HX-Trigger': 'categoryListChanged'})
+        return redirect('catalog:category_list')
+    
+    return render(request, 'catalog/category_confirm_delete.html', {'category': category})
+
+
+# ============================================
+# Brand CRUD
+# ============================================
+
+def brand_list(request):
+    """Lista todas as marcas."""
+    from .models import Brand
+    
+    brands = Brand.objects.all()
+    return render(request, 'catalog/brand_list.html', {'brands': brands})
+
+
+def brand_create(request):
+    """Cria uma nova marca."""
+    from .forms import BrandForm
+    
+    if request.method == 'POST':
+        form = BrandForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('HX-Request'):
+                return HttpResponse(status=204, headers={'HX-Trigger': 'brandListChanged'})
+            return redirect('catalog:brand_list')
+    else:
+        form = BrandForm()
+    
+    return render(request, 'catalog/brand_form.html', {'form': form})
+
+
+def brand_edit(request, pk):
+    """Edita uma marca existente."""
+    from .forms import BrandForm
+    from .models import Brand
+    
+    brand = get_object_or_404(Brand, pk=pk)
+    
+    if request.method == 'POST':
+        form = BrandForm(request.POST, instance=brand)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('HX-Request'):
+                return HttpResponse(status=204, headers={'HX-Trigger': 'brandListChanged'})
+            return redirect('catalog:brand_list')
+    else:
+        form = BrandForm(instance=brand)
+    
+    return render(request, 'catalog/brand_form.html', {'form': form, 'brand': brand})
+
+
+def brand_delete(request, pk):
+    """Exclui uma marca."""
+    from .models import Brand
+    
+    brand = get_object_or_404(Brand, pk=pk)
+    
+    if request.method == 'POST':
+        brand.delete()
+        if request.headers.get('HX-Request'):
+            return HttpResponse(status=204, headers={'HX-Trigger': 'brandListChanged'})
+        return redirect('catalog:brand_list')
+    
+    return render(request, 'catalog/brand_confirm_delete.html', {'brand': brand})
+

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Categorias - Bike Shop ERP{% endblock %}
+{% block page_title %}Categorias{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'catalog:category_create' %}" class="btn btn-primary">+ Nova Categoria</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" id="category-table" hx-trigger="categoryListChanged from:body"
+    hx-get="{% url 'catalog:category_list' %}">
+    {% if categories %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Tipo</th>
+                <th>Produtos</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td><strong>{{ category.name }}</strong></td>
+                <td>
+                    {% if category.type == 'SERVICE' %}
+                    <span class="badge">🔧 Serviço</span>
+                    {% else %}
+                    <span class="badge badge-primary">📦 Produto</span>
+                    {% endif %}
+                </td>
+                <td>{{ category.products.count }}</td>
+                <td class="text-center actions">
+                    <a href="{% url 'catalog:category_edit' category.pk %}" class="btn btn-sm">✏️</a>
+                    <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:category_delete' category.pk %}"
+                        hx-confirm="Deseja realmente excluir '{{ category.name }}'?">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>Nenhuma categoria cadastrada.</p>
+        <a href="{% url 'catalog:category_create' %}" class="btn btn-primary">Criar primeira categoria</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

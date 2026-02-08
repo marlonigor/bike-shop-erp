@@ -75,3 +75,42 @@ class ProductForm(forms.ModelForm):
             raise ValidationError('Já existe um produto com este SKU.')
         
         return sku.upper()  # Normalizar para maiúsculas
+
+
+class CategoryForm(forms.ModelForm):
+    """Formulário para criação e edição de categorias."""
+    
+    class Meta:
+        model = Category
+        fields = ['name', 'type']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'placeholder': 'Ex: Peças de Reposição',
+                'class': 'form-control'
+            }),
+            'type': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'name': 'Nome da Categoria',
+            'type': 'Tipo',
+        }
+
+
+class BrandForm(forms.ModelForm):
+    """Formulário para criação e edição de marcas."""
+    
+    class Meta:
+        model = Brand
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'placeholder': 'Ex: Shimano',
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'name': 'Nome da Marca',
+        }
+

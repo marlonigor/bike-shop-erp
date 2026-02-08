@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{% if brand %}Editar{% else %}Nova{% endif %} Marca - Bike Shop ERP{% endblock %}
+{% block page_title %}{% if brand %}Editar Marca{% else %}Nova Marca{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    {% if form.non_field_errors %}
+    <div class="alert-danger">
+        {% for error in form.non_field_errors %}
+        <p>⚠️ {{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" hx-post="{{ request.path }}" hx-target="body" hx-swap="none">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="id_name">Nome da Marca *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <span class="field-error">{{ form.name.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'catalog:brand_list' %}" class="btn">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {% if brand %}Salvar Alterações{% else %}Criar Marca{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, functions
+from django.utils import timezone
+from datetime import timedelta
 from decimal import Decimal
 
 
@@ -25,10 +27,24 @@ def dashboard(request):
         status=Sale.Status.COMPLETED
     ).select_related('client').order_by('-created_at')[:5]
     
-    # Produtos com baixo estoque
+    # Alertas de estoque
     alertas_estoque = Stock.objects.filter(
         quantity__lt=10
     ).select_related('product', 'warehouse').order_by('quantity')[:5]
+    
+    # Dados para o gráfico (últimos 6 meses)
+    seis_meses_atras = timezone.now().replace(day=1) - timedelta(days=150)
+    vendas_mensais = Sale.objects.filter(
+        status=Sale.Status.COMPLETED,
+        created_at__gte=seis_meses_atras
+    ).annotate(
+        month=functions.TruncMonth('created_at')
+    ).values('month').annotate(
+        total=Sum('total_amount')
+    ).order_by('month')
+
+    chart_labels = [v['month'].strftime('%b/%Y') for v in vendas_mensais]
+    chart_data = [float(v['total']) for v in vendas_mensais]
     
     context = {
         'total_vendas': total_vendas,
@@ -37,6 +53,8 @@ def dashboard(request):
         'produtos_baixo_estoque': produtos_baixo_estoque,
         'ultimas_vendas': ultimas_vendas,
         'alertas_estoque': alertas_estoque,
+        'chart_labels': chart_labels,
+        'chart_data': chart_data,
     }
     
     return render(request, 'core/dashboard.html', context)

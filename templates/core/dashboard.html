@@ -41,6 +41,19 @@
 
 <!-- Content Grid -->
 <div class="dashboard-grid">
+    <!-- Gráfico de Vendas -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+            <h3>📈 Desempenho de Vendas (Mensal)</h3>
+            <div class="header-actions">
+                <span class="badge">Últimos 6 Meses</span>
+            </div>
+        </div>
+        <div class="card-body" style="height: 350px;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+
     <!-- Últimas Vendas -->
     <div class="card">
         <div class="card-header">
@@ -105,4 +118,87 @@
         </div>
     </div>
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+
+        // Gradiente para a linha
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(102, 126, 234, 0.5)');
+        gradient.addColorStop(1, 'rgba(118, 75, 162, 0.0)');
+
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels| safe }},
+        datasets: [{
+            label: 'Vendas (R$)',
+            data: {{ chart_data| safe }},
+        borderColor: '#667eea',
+        borderWidth: 3,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: '#667eea',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
+                }]
+            },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(10, 10, 26, 0.9)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                padding: 12,
+                displayColors: false,
+                callbacks: {
+                    label: function (context) {
+                        return 'R$ ' + context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.05)',
+                    drawBorder: false
+                },
+                ticks: {
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    font: { size: 11 },
+                    callback: function (value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR');
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    font: { size: 11 }
+                }
+            }
+        }
+    }
+        });
+    });
+</script>
 {% endblock %}

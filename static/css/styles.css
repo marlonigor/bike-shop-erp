@@ -148,15 +148,14 @@ body::before {
    ============================================ */
 
 .app-container {
-    display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
+    display: block;
     min-height: 100vh;
-    transition: grid-template-columns var(--transition-base);
+    position: relative;
 }
 
-.app-container.sidebar-collapsed {
-    grid-template-columns: var(--sidebar-collapsed) 1fr;
-}
+
+/* .app-container.sidebar-collapsed removido pois layout não é mais grid */
+
 
 /* ============================================
    Sidebar - Premium Glass Effect
@@ -356,15 +355,18 @@ body::before {
 }
 
 .content {
+    width: 100%;
     padding: var(--space-xl);
     max-width: 1600px;
 }
+
 
 /* ============================================
    Glass Card Component
    ============================================ */
 
 .card {
+    width: 100%;
     background: var(--color-surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -375,6 +377,7 @@ body::before {
     position: relative;
     overflow: hidden;
 }
+
 
 .card::before {
     content: '';
@@ -1330,10 +1333,11 @@ code {
    ============================================ */
 
 .form-card {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: var(--space-xl);
+    width: 100%;
+    max-width: 100%;
+    padding: 32px;
 }
+
 
 .form-group {
     margin-bottom: var(--space-lg);
@@ -1350,17 +1354,22 @@ code {
 .form-group input,
 .form-group select,
 .form-group textarea,
+input.form-control,
+select.form-control,
 .form-control {
-    width: 100%;
-    padding: var(--space-md);
-    background: var(--color-glass);
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
-    font-size: 1rem;
-    font-family: inherit;
-    transition: var(--transition-fast);
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    padding: 12px 16px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-family: inherit !important;
+    transition: all 0.15s ease !important;
 }
+
 
 .form-group input:focus,
 .form-group select:focus,
@@ -1426,4 +1435,127 @@ code {
     border-radius: var(--radius-md);
     margin-bottom: var(--space-lg);
     color: var(--color-danger);
+}
+
+/* ============================================
+   Table Styles
+   ============================================ */
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-md);
+}
+
+.table th,
+.table td {
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-glass-border);
+    color: var(--color-text-secondary);
+}
+
+.table th {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding-bottom: var(--space-lg);
+}
+
+.table tbody tr {
+    transition: background-color var(--transition-fast);
+}
+
+.table tbody tr:hover {
+    background-color: var(--color-glass-hover);
+}
+
+.table td strong {
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.table .text-center {
+    text-align: center;
+}
+
+.table .text-right {
+    text-align: right;
+}
+
+.table .actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+}
+
+/* ============================================
+   Badge Styles
+   ============================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-glass-border);
+}
+
+.badge-primary {
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--color-primary);
+    border-color: rgba(102, 126, 234, 0.2);
+}
+
+.badge-success {
+    background: rgba(56, 239, 125, 0.1);
+    color: var(--color-success);
+    border-color: rgba(56, 239, 125, 0.2);
+}
+
+.badge-warning {
+    background: rgba(242, 201, 76, 0.1);
+    color: var(--color-warning);
+    border-color: rgba(242, 201, 76, 0.2);
+}
+
+.badge-danger {
+    background: rgba(244, 92, 67, 0.1);
+    color: var(--color-danger);
+    border-color: rgba(244, 92, 67, 0.2);
+}
+
+/* ============================================
+   Button Styles (Ensure override)
+   ============================================ */
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+/* ============================================
+   Layout Corrections
+   ============================================ */
+#category-table,
+#brand-table,
+#product-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    overflow-x: auto !important;
+}
+
+#category-table .table,
+#brand-table .table,
+#product-table .table {
+    width: 100% !important;
+    min-width: 600px;
+    /* Ensure table doesn't collapse too much */
 }

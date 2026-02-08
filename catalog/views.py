@@ -34,44 +34,42 @@ def product_list(request):
 
 def product_create(request):
     """Cria um novo produto."""
-    categories = Category.objects.all()
+    from .forms import ProductForm
     
     if request.method == 'POST':
-        product = Product.objects.create(
-            sku=request.POST['sku'],
-            name=request.POST['name'],
-            category_id=request.POST['category'],
-            cost=request.POST.get('cost', 0),
-            price=request.POST['price'],
-        )
-        
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
-        return redirect('catalog:product_list')
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            
+            if request.headers.get('HX-Request'):
+                return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
+            return redirect('catalog:product_list')
+    else:
+        form = ProductForm()
     
-    return render(request, 'catalog/product_form.html', {'categories': categories})
+    return render(request, 'catalog/product_form.html', {'form': form})
 
 
 def product_edit(request, pk):
     """Edita um produto existente."""
+    from .forms import ProductForm
+    
     product = get_object_or_404(Product, pk=pk)
-    categories = Category.objects.all()
     
     if request.method == 'POST':
-        product.sku = request.POST['sku']
-        product.name = request.POST['name']
-        product.category_id = request.POST['category']
-        product.cost = request.POST.get('cost', 0)
-        product.price = request.POST['price']
-        product.save()
-        
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
-        return redirect('catalog:product_list')
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            
+            if request.headers.get('HX-Request'):
+                return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
+            return redirect('catalog:product_list')
+    else:
+        form = ProductForm(instance=product)
     
     return render(request, 'catalog/product_form.html', {
         'product': product,
-        'categories': categories,
+        'form': form,
     })
 
 

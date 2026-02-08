@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
 from .models import Stock, Warehouse
@@ -61,3 +61,61 @@ def stock_movement(request):
         'products': products,
         'warehouses': warehouses,
     })
+
+
+def stock_adjust(request):
+    """Realiza ajuste manual de estoque para quantidade exata."""
+    from .forms import StockAdjustmentForm
+    
+    if request.method == 'POST':
+        form = StockAdjustmentForm(request.POST)
+        if form.is_valid():
+            product = form.cleaned_data['product']
+            warehouse = form.cleaned_data['warehouse']
+            new_quantity = form.cleaned_data['new_quantity']
+            reason = form.cleaned_data['reason']
+            
+            try:
+                StockService.adjust_stock(
+                    product=product,
+                    warehouse=warehouse,
+                    new_quantity=new_quantity,
+                    reason=reason
+                )
+                if request.headers.get('HX-Request'):
+                    return HttpResponse(status=204, headers={'HX-Trigger': 'stockListChanged'})
+                return redirect('stock:stock_list')
+            except Exception as e:
+                # Retorna erro para o frontend (pode ser melhorado com mensagens)
+                form.add_error(None, str(e))
+    else:
+        form = StockAdjustmentForm()
+    
+    return render(request, 'stock/stock_adjust.html', {'form': form})
+
+
+def stock_history(request):
+    """Lista histórico de movimentações de estoque."""
+    from .models import StockMovement
+    
+    movements = StockMovement.objects.select_related('product', 'warehouse').order_by('-created_at')
+    
+    # Filtros simples
+    product_id = request.GET.get('product')
+    if product_id:
+        movements = movements.filter(product_id=product_id)
+        
+    movement_type = request.GET.get('type')
+    if movement_type:
+        movements = movements.filter(movement_type=movement_type)
+        
+    # Paginação simples (limite 50)
+    movements = movements[:50]
+    
+    context = {
+        'movements': movements,
+        'selected_product': product_id,
+        'selected_type': movement_type,
+    }
+    
+    return render(request, 'stock/stock_history.html', context)

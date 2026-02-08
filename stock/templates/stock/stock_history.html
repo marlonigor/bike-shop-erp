@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Movimentações - Bike Shop ERP{% endblock %}
+{% block page_title %}Histórico de Movimentações (Últimos 50){% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'stock:stock_list' %}" class="btn">Voltar para Estoque</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" class="full-width-table-container">
+    {% if movements %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Produto</th>
+                <th>Depósito</th>
+                <th>Tipo</th>
+                <th class="text-right">Qtd. Mudança</th>
+                <th>Motivo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movement in movements %}
+            <tr>
+                <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <span style="display: block; font-weight: 500;">{{ movement.product.sku }}</span>
+                    <small style="color: var(--color-text-muted);">{{ movement.product.name }}</small>
+                </td>
+                <td>{{ movement.warehouse.name }}</td>
+                <td>
+                    {% if movement.movement_type == 'IN' %}
+                    <span class="badge badge-success">Entrada 📥</span>
+                    {% elif movement.movement_type == 'OUT' %}
+                    <span class="badge badge-danger">Saída 📤</span>
+                    {% elif movement.movement_type == 'ADJUST' %}
+                    <span class="badge badge-warning">Ajuste ⚠️</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if movement.movement_type == 'OUT' %}-{% elif movement.movement_type == 'IN' %}+{% endif %}
+                    {{ movement.quantity }}
+                    {% if movement.new_quantity is not None %}
+                    <br><small style="color: var(--color-text-muted);">Novo saldo: {{ movement.new_quantity }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ movement.reason }}
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                        Ref: {{ movement.get_reference_type_display }}
+                        {% if movement.reference_id %}({{ movement.reference_id|truncatechars:8 }}){% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>Nenhuma movimentação registrada.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

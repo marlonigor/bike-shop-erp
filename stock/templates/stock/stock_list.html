@@ -4,7 +4,11 @@
 {% block page_title %}Controle de Estoque{% endblock %}
 
 {% block header_actions %}
-<a href="{% url 'stock:stock_movement' %}" class="btn btn-primary">+ Movimentação</a>
+<div class="actions">
+    <a href="{% url 'stock:stock_history' %}" class="btn btn-secondary">Histórico</a>
+    <a href="{% url 'stock:stock_adjust' %}" class="btn btn-warning">Ajuste Manual</a>
+    <a href="{% url 'stock:stock_movement' %}" class="btn btn-primary">+ Movimentação</a>
+</div>
 {% endblock %}
 
 {% block content %}

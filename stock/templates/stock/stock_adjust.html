@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajuste de Estoque - Bike Shop ERP{% endblock %}
+{% block page_title %}Ajuste Manual de Estoque{% endblock %}
+
+{% block content %}
+<div class="form-card"> <!-- Usando a classe form-card que já tem estilos -->
+    <div class="alert alert-warning" style="margin-bottom: var(--space-lg);">
+        <strong>Atenção:</strong> Esta ação altera o saldo do estoque para o valor exato informado.
+        Use para correções de inventário, perdas ou contagens.
+    </div>
+
+    <form method="post" hx-post="{{ request.path }}" hx-swap="none">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ form.warehouse.id_for_label }}">{{ form.warehouse.label }} *</label>
+            {{ form.warehouse }}
+            {{ form.warehouse.errors }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.product.id_for_label }}">{{ form.product.label }} *</label>
+            {{ form.product }}
+            {{ form.product.errors }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.new_quantity.id_for_label }}">{{ form.new_quantity.label }} *</label>
+            {{ form.new_quantity }}
+            <small style="color: var(--color-text-muted);">Informe a quantidade total que existe fisicamente no
+                depósito.</small>
+            {{ form.new_quantity.errors }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.reason.id_for_label }}">{{ form.reason.label }} *</label>
+            {{ form.reason }}
+            {{ form.reason.errors }}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'stock:stock_list' %}" class="btn">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Confirmar Ajuste</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

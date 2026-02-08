@@ -87,6 +87,11 @@ class StockMovement(ModelBase):
         blank=True, 
         verbose_name="ID da Referência"
     )
+    new_quantity = models.IntegerField(
+        null=True, 
+        blank=True, 
+        verbose_name="Nova Quantidade (Ajuste)"
+    )
 
     class Meta:
         verbose_name = "Movimentação de Estoque"

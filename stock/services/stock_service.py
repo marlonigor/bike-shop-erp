@@ -153,8 +153,9 @@ class StockService:
             warehouse=warehouse,
             quantity=abs(diff),
             movement_type=StockMovement.MovementType.ADJUST,
+            new_quantity=new_quantity,
             reference_type=StockMovement.ReferenceType.MANUAL,
-            reason=reason or f"Ajuste de estoque: {current} → {new_quantity}",
+            reason=reason or f"Ajuste de estoque: {current} -> {new_quantity}",
         )
         return movement
 

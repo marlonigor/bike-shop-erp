@@ -1,12 +1,18 @@
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
+
+from core.exceptions import InsufficientStockError
 from .models import StockMovement, Stock
+
 
 @receiver(post_save, sender=StockMovement)
 def update_stock_balance(sender, instance, created, **kwargs):
     """
     Atualiza o saldo da tabela Stock sempre que uma StockMovement é criada.
+    
+    - IN: Incrementa o saldo
+    - OUT: Decrementa o saldo (valida disponibilidade)
+    - ADJUST: Define saldo exato (incrementa ou decrementa conforme diferença)
     """
     if not created:
         # Se for apenas uma edição de registro já existente, não alteramos o saldo 
@@ -21,19 +27,27 @@ def update_stock_balance(sender, instance, created, **kwargs):
         defaults={'quantity': 0}
     )
 
-    # Lógica de Entrada e Saída
     if instance.movement_type == StockMovement.MovementType.IN:
         stock.quantity += instance.quantity
-    
+
     elif instance.movement_type == StockMovement.MovementType.OUT:
         # Validação de Estoque Negativo (Regra de Negócio Crítica)
         if stock.quantity < instance.quantity:
-            raise ValidationError(
-                f"Saldo insuficiente para saída. Disponível: {stock.quantity}, Solicitado: {instance.quantity}"
+            raise InsufficientStockError(
+                product=instance.product,
+                warehouse=instance.warehouse,
+                requested=instance.quantity,
+                available=stock.quantity,
             )
         stock.quantity -= instance.quantity
-    
-    # Nota: Tipos 'ADJUST' precisariam de lógica específica (ex: definir saldo exato),
-    # mas por segurança, focamos em IN/OUT por enquanto.
+
+    elif instance.movement_type == StockMovement.MovementType.ADJUST:
+        # ADJUST: Usamos o campo new_quantity explícito para definir o novo saldo.
+        if instance.new_quantity is not None:
+            stock.quantity = instance.new_quantity
+        else:
+            # Fallback (opcional): se o campo estiver vazio, não alteramos o saldo.
+            # Isso evita comportamentos imprevisíveis.
+            pass
 
     stock.save()

@@ -29,7 +29,7 @@ def product_list(request):
     if request.headers.get('HX-Request'):
         return render(request, 'catalog/partials/product_table.html', context)
     
-    return render(request, 'catalog/product_list.html', context)
+    return render(request, 'catalog/product_list_v2.html', context)
 
 
 def product_create(request):

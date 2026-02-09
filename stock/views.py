@@ -31,7 +31,7 @@ def stock_list(request):
     if request.headers.get('HX-Request'):
         return render(request, 'stock/partials/stock_table.html', context)
     
-    return render(request, 'stock/stock_list.html', context)
+    return render(request, 'stock/stock_list_v2.html', context)
 
 
 def stock_movement(request):

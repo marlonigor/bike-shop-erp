@@ -12,6 +12,10 @@ def product_list(request):
     category_filter = request.GET.get('category')
     if category_filter:
         products = products.filter(category_id=category_filter)
+        
+    # Processar seleção para o template
+    for cat in categories:
+        cat.is_selected = str(cat.id) == category_filter
     
     # Busca por nome/SKU
     search = request.GET.get('q')

@@ -15,6 +15,10 @@ def stock_list(request):
     warehouse_filter = request.GET.get('warehouse')
     if warehouse_filter:
         stocks = stocks.filter(warehouse_id=warehouse_filter)
+        
+    # Processar seleção para o template
+    for wh in warehouses:
+        wh.is_selected = str(wh.id) == warehouse_filter
     
     # Filtro por baixo estoque
     low_stock = request.GET.get('low_stock')

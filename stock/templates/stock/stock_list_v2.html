@@ -19,7 +19,7 @@
             hx-target="#stock-table" style="max-width: 200px;">
             <option value="">Todos os depósitos</option>
             {% for wh in warehouses %}
-            <option value="{{ wh.id }}" {% if selected_warehouse==wh.id|stringformat:"s" %}selected{% endif %}>
+            <option value="{{ wh.id }}" {% if wh.is_selected %}selected{% endif %}>
                 {{ wh.name }}
             </option>
             {% endfor %}

@@ -1,9 +1,46 @@
 <div class="sale-success">
-    <div class="success-icon">✅</div>
-    <h2>Venda Realizada!</h2>
-    <p>Código: <code>{{ sale.id }}</code></p>
-    <p>Total: <strong>R$ {{ sale.total_amount|floatformat:2 }}</strong></p>
-    <button class="btn btn-primary" onclick="window.location.reload()">
-        Nova Venda
-    </button>
+    <div class="confetti-container">
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+    </div>
+
+    <div class="success-icon">🎉</div>
+    <h2>Venda Realizada com Sucesso!</h2>
+
+    <div class="success-details">
+        <div class="success-detail-row">
+            <span class="detail-label">Código da Venda</span>
+            <code>{{ sale.id }}</code>
+        </div>
+        <div class="success-detail-row">
+            <span class="detail-label">Cliente</span>
+            <span>{{ sale.client.name }}</span>
+        </div>
+        <div class="success-detail-row">
+            <span class="detail-label">Itens</span>
+            <span>{{ sale.items.count }} produto(s)</span>
+        </div>
+        <div class="success-detail-row total-row">
+            <span class="detail-label">Total</span>
+            <span class="detail-total">R$ {{ sale.total_amount|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <div class="success-actions">
+        <button class="btn btn-secondary" onclick="window.print()">
+            🖨️ Imprimir
+        </button>
+        <button class="btn btn-primary btn-lg" onclick="window.location.reload()">
+            ➕ Nova Venda
+        </button>
+    </div>
 </div>
+
+<script>
+    document.getElementById('cart-total').textContent = 'R$ 0.00';
+    document.getElementById('cart-total-header').textContent = 'R$ 0.00';
+</script>

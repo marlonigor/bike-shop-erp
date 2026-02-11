@@ -39,11 +39,13 @@ def stock_list(request):
 
 
 def stock_movement(request):
+    print(f"DEBUG: Entrou em stock_movement. Path: {request.path}")
     """Registra movimentação de estoque."""
     products = Product.objects.filter(active=True)
     warehouses = Warehouse.objects.all()
     
     if request.method == 'POST':
+        print(f"DEBUG POST KEYS: {request.POST.keys()}")
         product = get_object_or_404(Product, pk=request.POST['product_id'])
         warehouse = get_object_or_404(Warehouse, pk=request.POST['warehouse_id'])
         quantity = int(request.POST['quantity'])
@@ -58,6 +60,8 @@ def stock_movement(request):
             
             if request.headers.get('HX-Request'):
                 return HttpResponse(status=204, headers={'HX-Trigger': 'stockListChanged'})
+            # Redirecionamento para chamadas normais (não-HTMX)
+            return redirect('stock:stock_list')
         except Exception as e:
             return HttpResponse(f'Erro: {str(e)}', status=400)
     
@@ -68,6 +72,7 @@ def stock_movement(request):
 
 
 def stock_adjust(request):
+    print(f"DEBUG: Entrou em stock_adjust. Path: {request.path}")
     """Realiza ajuste manual de estoque para quantidade exata."""
     from .forms import StockAdjustmentForm
     

@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/bin/python3.12
+cachedir: .pytest_cache
+django: version: 6.0.2, settings: bikeshop.settings (from ini)
+rootdir: /app
+configfile: pytest.ini
+plugins: django-4.11.1, cov-7.0.0
+collecting ... collected 4 items / 1 error
+
+==================================== ERRORS ====================================
+_______________________ ERROR collecting stock/tests.py ________________________
+import file mismatch:
+imported module 'stock.tests' has this __file__ attribute:
+  /app/stock/tests
+which is not the same as the test file we want to collect:
+  /app/stock/tests.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+=========================== short test summary info ============================
+ERROR stock/tests.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.69s ===============================

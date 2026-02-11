@@ -4,7 +4,20 @@
 {% block page_title %}Ponto de Venda{% endblock %}
 
 {% block content %}
-<div class="pdv-container" x-data="{ warehouseId: '' }">
+<div class="pdv-container" x-data="{
+    warehouseId: '',
+    clientId: '',
+    showConfirm: false,
+    get canFinalize() {
+        return this.warehouseId && this.clientId && document.querySelectorAll('.cart-table tbody tr').length > 0;
+    }
+}">
+    <!-- Loading Indicator Global -->
+    <div class="htmx-indicator pdv-loading" id="pdv-spinner">
+        <div class="spinner"></div>
+        <span>Processando...</span>
+    </div>
+
     <!-- Cabeçalho PDV -->
     <div class="pdv-header">
         <div class="form-group">
@@ -19,7 +32,7 @@
 
         <div class="form-group">
             <label>Cliente</label>
-            <select name="client_id" id="client-select" required>
+            <select name="client_id" id="client-select" x-model="clientId" required>
                 <option value="">Selecione o cliente...</option>
                 {% for client in clients %}
                 <option value="{{ client.id }}">{{ client.name }}</option>
@@ -33,12 +46,15 @@
         <div class="pdv-search">
             <div class="card">
                 <div class="card-header">
-                    <h3>Buscar Produto</h3>
+                    <h3>🔍 Buscar Produto</h3>
                 </div>
                 <div class="card-body">
-                    <input type="text" name="q" placeholder="Digite o nome ou SKU..."
+                    <input type="text" name="q" placeholder="Digite o nome ou SKU... (Esc limpa)"
                         hx-get="{% url 'sales:product_search' %}" hx-trigger="keyup changed delay:300ms"
-                        hx-target="#search-results" hx-include="[name='warehouse_id']" :disabled="!warehouseId">
+                        hx-target="#search-results" hx-include="[name='warehouse_id']" hx-indicator="#pdv-spinner"
+                        :disabled="!warehouseId" x-init="$nextTick(() => { if(warehouseId) $el.focus() })"
+                        @keydown.escape="$el.value = ''; document.getElementById('search-results').innerHTML = ''"
+                        id="search-input">
 
                     <div id="search-results" class="search-results"></div>
                 </div>
@@ -50,9 +66,18 @@
             <div class="card">
                 <div class="card-header">
                     <h3>🛒 Carrinho</h3>
-                    <span class="cart-total" id="cart-total-header">
-                        R$ {{ cart_total|floatformat:2 }}
-                    </span>
+                    <div class="cart-header-actions">
+                        <span class="cart-total" id="cart-total-header">
+                            R$ {{ cart_total|floatformat:2 }}
+                        </span>
+                        {% if cart %}
+                        <button class="btn btn-sm btn-danger" hx-post="{% url 'sales:cart_clear' %}"
+                            hx-target="#cart-items" hx-swap="innerHTML" hx-indicator="#pdv-spinner"
+                            title="Limpar carrinho">
+                            🗑️
+                        </button>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div id="cart-items" class="card-body">
@@ -67,17 +92,60 @@
                         </span>
                     </div>
 
-                    <form hx-post="{% url 'sales:sale_complete' %}" hx-target="#cart-items"
-                        hx-include="[name='warehouse_id'], [name='client_id']">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-lg btn-block"
-                            :disabled="!warehouseId || {{ cart|length }} == 0">
-                            ✅ Finalizar Venda
-                        </button>
-                    </form>
+                    <!-- Botão abre modal de confirmação -->
+                    <button type="button" class="btn btn-primary btn-lg btn-block"
+                        :disabled="!warehouseId || !clientId || {{ cart|length }} == 0" @click="showConfirm = true">
+                        ✅ Finalizar Venda
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal-overlay" x-show="showConfirm" x-cloak x-transition:enter="modal-enter"
+        x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end"
+        x-transition:leave="modal-leave" x-transition:leave-start="modal-leave-start"
+        x-transition:leave-end="modal-leave-end" @click.self="showConfirm = false"
+        @keydown.escape.window="showConfirm = false">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚡ Confirmar Venda</h3>
+            </div>
+            <div class="modal-body">
+                <p>Deseja finalizar esta venda?</p>
+                <div class="confirm-details">
+                    <span class="confirm-total" id="confirm-total">
+                        Total: R$ {{ cart_total|floatformat:2 }}
+                    </span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" @click="showConfirm = false">
+                    Cancelar
+                </button>
+                <form hx-post="{% url 'sales:sale_complete' %}" hx-target="#cart-items"
+                    hx-include="[name='warehouse_id'], [name='client_id']" hx-indicator="#pdv-spinner"
+                    @htmx:after-request="showConfirm = false">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-lg">
+                        ✅ Confirmar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Keyboard shortcut: F2 foca na busca -->
+<script>
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'F2') {
+            e.preventDefault();
+            const input = document.getElementById('search-input');
+            if (input) input.focus();
+        }
+    });
+</script>
 {% endblock %}

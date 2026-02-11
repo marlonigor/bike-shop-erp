@@ -6,18 +6,29 @@
             <th class="text-center">Qtd</th>
             <th class="text-right">Unit.</th>
             <th class="text-right">Subtotal</th>
+            <th class="text-center" style="width: 50px;"></th>
         </tr>
     </thead>
     <tbody>
         {% for item in cart %}
-        <tr>
+        <tr class="cart-row-enter">
             <td>
                 <span class="item-name">{{ item.name }}</span>
                 <span class="item-sku">{{ item.sku }}</span>
             </td>
-            <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-center">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="qty-input qty-inline"
+                    hx-post="{% url 'sales:cart_update' %}" hx-target="#cart-items" hx-swap="innerHTML"
+                    hx-trigger="change" hx-include="this" hx-vals='{"product_id": "{{ item.product_id }}"}'>
+            </td>
             <td class="text-right">R$ {{ item.unit_price }}</td>
-            <td class="text-right">R$ {{ item.total }}</td>
+            <td class="text-right font-bold">R$ {{ item.total }}</td>
+            <td class="text-center">
+                <button class="btn-remove" hx-post="{% url 'sales:cart_remove' %}" hx-target="#cart-items"
+                    hx-swap="innerHTML" hx-vals='{"product_id": "{{ item.product_id }}"}' title="Remover item">
+                    ✕
+                </button>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
@@ -26,10 +37,14 @@
 <script>
     document.getElementById('cart-total').textContent = 'R$ {{ cart_total|floatformat:2 }}';
     document.getElementById('cart-total-header').textContent = 'R$ {{ cart_total|floatformat:2 }}';
+    // Atualizar total no modal de confirmação
+    var ct = document.getElementById('confirm-total');
+    if (ct) ct.textContent = 'Total: R$ {{ cart_total|floatformat:2 }}';
 </script>
 {% else %}
 <div class="empty-cart">
-    <p>🛒 Carrinho vazio</p>
+    <div class="empty-cart-icon">🛒</div>
+    <p>Carrinho vazio</p>
     <small>Busque produtos para adicionar</small>
 </div>
 {% endif %}

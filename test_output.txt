@@ -1,0 +1,54 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/bin/python3.12
+cachedir: .pytest_cache
+django: version: 6.0.2, settings: bikeshop.settings (from ini)
+rootdir: /app
+configfile: pytest.ini
+plugins: django-4.11.1, cov-7.0.0
+collecting ... collected 3 items
+
+stock/tests/test_stock_views.py::TestStockViews::test_stock_list_view_returns_200 Creating test database for alias 'default'...
+PASSED
+stock/tests/test_stock_views.py::TestStockViews::test_stock_adjust_view_post_updates_stock PASSED
+stock/tests/test_stock_views.py::TestStockViews::test_stock_movement_view_post_adds_stock DEBUG: Entrou em stock_movement. Path: /estoque/movimentar/
+FAILEDDestroying test database for alias 'default'...
+
+
+=================================== FAILURES ===================================
+___________ TestStockViews.test_stock_movement_view_post_adds_stock ____________
+stock/tests/test_stock_views.py:53: in test_stock_movement_view_post_adds_stock
+    response = client.post(url, data)
+               ^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/django/test/client.py:1153: in post
+    response = super().post(
+/usr/local/lib/python3.12/site-packages/django/test/client.py:499: in post
+    return self.generic(
+/usr/local/lib/python3.12/site-packages/django/test/client.py:671: in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/django/test/client.py:1087: in request
+    self.check_exception(response)
+/usr/local/lib/python3.12/site-packages/django/test/client.py:802: in check_exception
+    raise exc_value
+/usr/local/lib/python3.12/site-packages/django/core/handlers/exception.py:55: in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.12/site-packages/django/core/handlers/base.py:205: in _get_response
+    self.check_response(response, callback)
+/usr/local/lib/python3.12/site-packages/django/core/handlers/base.py:333: in check_response
+    raise ValueError(
+E   ValueError: The view stock.views.stock_movement didn't return an HttpResponse object. It returned None instead.
+------------------------------ Captured log call -------------------------------
+ERROR    django.request:log.py:249 Internal Server Error: /estoque/movimentar/
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/django/core/handlers/base.py", line 205, in _get_response
+    self.check_response(response, callback)
+  File "/usr/local/lib/python3.12/site-packages/django/core/handlers/base.py", line 333, in check_response
+    raise ValueError(
+ValueError: The view stock.views.stock_movement didn't return an HttpResponse object. It returned None instead.
+=========================== short test summary info ============================
+FAILED stock/tests/test_stock_views.py::TestStockViews::test_stock_movement_view_post_adds_stock
+========================= 1 failed, 2 passed in 1.83s ==========================

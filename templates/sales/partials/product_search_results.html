@@ -1,18 +1,22 @@
 {% if results %}
 <ul class="product-list">
     {% for item in results %}
-    <li class="product-item">
+    <li class="product-item {% if item.stock == 0 %}out-of-stock{% endif %}">
         <div class="product-info">
             <span class="product-name">{{ item.product.name }}</span>
             <span class="product-sku">{{ item.product.sku }}</span>
         </div>
         <div class="product-details">
             <span class="product-price">R$ {{ item.product.price|floatformat:2 }}</span>
-            <span class="product-stock {% if item.stock < 5 %}low{% endif %}">
-                Estoque: {{ item.stock }}
-            </span>
+            {% if item.stock == 0 %}
+            <span class="badge badge-danger">Sem estoque</span>
+            {% elif item.stock < 5 %} <span class="product-stock low">⚠️ Estoque: {{ item.stock }}</span>
+                {% else %}
+                <span class="product-stock">Estoque: {{ item.stock }}</span>
+                {% endif %}
         </div>
-        <form hx-post="{% url 'sales:cart_add' %}" hx-target="#cart-items" hx-swap="innerHTML">
+        <form hx-post="{% url 'sales:cart_add' %}" hx-target="#cart-items" hx-swap="innerHTML"
+            hx-indicator="#pdv-spinner">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ item.product.id }}">
             <input type="number" name="quantity" value="1" min="1" max="{{ item.stock }}" class="qty-input">
@@ -24,5 +28,8 @@
     {% endfor %}
 </ul>
 {% else %}
-<p class="empty-results">Nenhum produto encontrado.</p>
+<div class="empty-results">
+    <p>🔍 Nenhum produto encontrado.</p>
+    <small>Tente buscar por nome ou SKU</small>
+</div>
 {% endif %}

@@ -1643,3 +1643,409 @@ select.form-control,
     min-width: 600px;
     /* Ensure table doesn't collapse too much */
 }
+
+/* ============================================
+   PDV UX Enhancements
+   ============================================ */
+
+/* Loading Indicator - PDV Spinner */
+.pdv-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 26, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: var(--space-md);
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.pdv-loading.htmx-request {
+    display: flex;
+}
+
+.pdv-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+}
+
+/* Cart Header Actions */
+.cart-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+/* Remove Button */
+.btn-remove {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(244, 92, 67, 0.1);
+    border: 1px solid rgba(244, 92, 67, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--color-danger);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all var(--transition-fast);
+    line-height: 1;
+    padding: 0;
+}
+
+.btn-remove:hover {
+    background: rgba(244, 92, 67, 0.25);
+    border-color: var(--color-danger);
+    transform: scale(1.1);
+}
+
+/* Inline Quantity Input */
+.qty-inline {
+    width: 60px !important;
+    text-align: center;
+    padding: var(--space-xs) var(--space-sm) !important;
+    font-size: 0.9rem;
+    background: var(--color-glass) !important;
+    border: 1px solid var(--color-glass-border) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--color-text-primary) !important;
+}
+
+.qty-inline:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Cart Row Animation */
+.cart-row-enter {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cart table font-bold */
+.cart-table .font-bold {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+/* Empty Cart Enhanced */
+.empty-cart-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    opacity: 0.5;
+}
+
+/* Out of Stock */
+.product-item.out-of-stock {
+    opacity: 0.5;
+    background: rgba(244, 92, 67, 0.05);
+    border-color: rgba(244, 92, 67, 0.15);
+}
+
+/* Empty Results Enhanced */
+.empty-results {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+}
+
+.empty-results p {
+    font-size: 1.1rem;
+    margin-bottom: var(--space-xs);
+}
+
+.empty-results small {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+/* ============================================
+   Confirmation Modal - Glassmorphism
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 26, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+}
+
+.modal-content {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-2xl);
+    max-width: 440px;
+    width: 100%;
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+}
+
+.modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.modal-body {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.modal-body p {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: var(--space-lg);
+}
+
+.confirm-details {
+    padding: var(--space-lg);
+    background: var(--color-glass);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-glass-border);
+}
+
+.confirm-total {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: var(--gradient-success);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+}
+
+/* Modal Transitions */
+.modal-enter {
+    transition: opacity 0.2s ease;
+}
+
+.modal-enter-start {
+    opacity: 0;
+}
+
+.modal-enter-end {
+    opacity: 1;
+}
+
+.modal-leave {
+    transition: opacity 0.15s ease;
+}
+
+.modal-leave-start {
+    opacity: 1;
+}
+
+.modal-leave-end {
+    opacity: 0;
+}
+
+/* Alpine x-cloak */
+[x-cloak] {
+    display: none !important;
+}
+
+/* ============================================
+   Sale Success Enhanced
+   ============================================ */
+
+.success-details {
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin: var(--space-xl) 0;
+    text-align: left;
+}
+
+.success-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--color-glass-border);
+}
+
+.success-detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.detail-total {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: var(--gradient-success);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.total-row {
+    padding-top: var(--space-lg);
+    margin-top: var(--space-sm);
+}
+
+.success-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    margin-top: var(--space-lg);
+}
+
+/* Confetti Animation */
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confettiFall 2.5s ease-in forwards;
+    opacity: 0;
+}
+
+.confetti:nth-child(1) {
+    left: 10%;
+    background: var(--color-primary);
+    animation-delay: 0s;
+}
+
+.confetti:nth-child(2) {
+    left: 30%;
+    background: var(--color-success);
+    animation-delay: 0.15s;
+}
+
+.confetti:nth-child(3) {
+    left: 50%;
+    background: var(--color-accent);
+    animation-delay: 0.3s;
+}
+
+.confetti:nth-child(4) {
+    left: 70%;
+    background: var(--color-warning);
+    animation-delay: 0.1s;
+}
+
+.confetti:nth-child(5) {
+    left: 85%;
+    background: var(--color-primary-light);
+    animation-delay: 0.25s;
+}
+
+.confetti:nth-child(6) {
+    left: 45%;
+    background: var(--color-danger);
+    animation-delay: 0.4s;
+}
+
+@keyframes confettiFall {
+    0% {
+        opacity: 1;
+        transform: translateY(-20px) rotate(0deg) scale(1);
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(300px) rotate(720deg) scale(0.5);
+    }
+}
+
+/* ============================================
+   PDV Responsive Enhancements
+   ============================================ */
+
+@media (max-width: 900px) {
+    .pdv-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pdv-cart .card-footer {
+        position: sticky;
+        bottom: 0;
+        background: var(--color-bg-secondary);
+        z-index: 10;
+        margin: 0 calc(var(--space-xl) * -1) calc(var(--space-xl) * -1);
+        padding: var(--space-lg) var(--space-xl);
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    .cart-summary {
+        padding: var(--space-md);
+    }
+
+    .total-value {
+        font-size: 1.5rem;
+    }
+
+    .modal-content {
+        margin: var(--space-md);
+        padding: var(--space-xl);
+    }
+}

@@ -32,8 +32,16 @@ class Stock(ModelBase):
     class Meta:
         verbose_name = "Estoque"
         verbose_name_plural = "Estoques"
-        # Garante que não haja duplicidade de produto no mesmo depósito
-        unique_together = [['product', 'warehouse']] 
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'warehouse'],
+                name='unique_stock_product_warehouse'
+            ),
+            models.CheckConstraint(
+                condition=models.Q(quantity__gte=0),
+                name='stock_quantity_non_negative'
+            ),
+        ]
         ordering = ['product__name']
 
     def __str__(self):

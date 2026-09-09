@@ -57,3 +57,13 @@ class TestStockService:
         )
         setup_data['stock'].refresh_from_db()
         assert setup_data['stock'].quantity == 50
+
+    def test_stock_quantity_non_negative_constraint(self, setup_data):
+        from django.db import IntegrityError
+        with pytest.raises(IntegrityError):
+            Stock.objects.create(
+                product=setup_data['product'],
+                warehouse=Warehouse.objects.create(name='Outro Depósito', location='RJ'),
+                quantity=-5
+            )
+

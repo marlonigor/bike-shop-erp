@@ -50,6 +50,13 @@ class StockService:
         if quantity <= 0:
             raise ValueError("Quantidade deve ser maior que zero")
 
+        # Garante bloqueio pessimista (row-level lock) no banco de dados
+        Stock.objects.select_for_update().get_or_create(
+            product=product,
+            warehouse=warehouse,
+            defaults={'quantity': 0}
+        )
+
         movement = StockMovement.objects.create(
             product=product,
             warehouse=warehouse,
@@ -92,14 +99,18 @@ class StockService:
         if quantity <= 0:
             raise ValueError("Quantidade deve ser maior que zero")
 
-        # Verifica disponibilidade antes de criar movimento
-        available = StockService.get_balance(product, warehouse)
-        if available < quantity:
+        # Bloqueio pessimista (row-level lock) para evitar race condition
+        stock, _ = Stock.objects.select_for_update().get_or_create(
+            product=product,
+            warehouse=warehouse,
+            defaults={'quantity': 0}
+        )
+        if stock.quantity < quantity:
             raise InsufficientStockError(
                 product=product,
                 warehouse=warehouse,
                 requested=quantity,
-                available=available,
+                available=stock.quantity,
             )
 
         movement = StockMovement.objects.create(
@@ -142,7 +153,12 @@ class StockService:
         if new_quantity < 0:
             raise ValueError("Quantidade não pode ser negativa")
 
-        current = StockService.get_balance(product, warehouse)
+        stock, _ = Stock.objects.select_for_update().get_or_create(
+            product=product,
+            warehouse=warehouse,
+            defaults={'quantity': 0}
+        )
+        current = stock.quantity
         diff = new_quantity - current
 
         if diff == 0:

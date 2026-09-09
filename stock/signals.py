@@ -20,8 +20,8 @@ def update_stock_balance(sender, instance, created, **kwargs):
         # Em um ERP real, edição de movimento é geralmente bloqueada.
         return
 
-    # Busca ou cria o registro de saldo para aquele Produto + Depósito
-    stock, _ = Stock.objects.get_or_create(
+    # Busca ou cria o registro de saldo para aquele Produto + Depósito com bloqueio pessimista
+    stock, _ = Stock.objects.select_for_update().get_or_create(
         product=instance.product,
         warehouse=instance.warehouse,
         defaults={'quantity': 0}

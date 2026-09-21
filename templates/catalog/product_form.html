@@ -10,7 +10,7 @@
     <div class="alert alert-danger"
         style="background: rgba(244, 92, 67, 0.15); border: 1px solid var(--color-danger); padding: var(--space-md); border-radius: var(--radius-md); margin-bottom: var(--space-lg);">
         {% for error in form.non_field_errors %}
-        <p style="color: var(--color-danger); margin: 0;">⚠️ {{ error }}</p>
+        <p style="color: var(--color-danger); margin: 0;">{{ error }}</p>
         {% endfor %}
     </div>
     {% endif %}

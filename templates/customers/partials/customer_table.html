@@ -21,10 +21,10 @@
             <td>{{ customer.phone|default:"-" }}</td>
             <td>{{ customer.document|default:"-" }}</td>
             <td class="text-center actions">
-                <a href="{% url 'customers:customer_edit' customer.pk %}" class="btn btn-sm">✏️</a>
+                <a href="{% url 'customers:customer_edit' customer.pk %}" class="btn btn-sm btn-secondary">Editar</a>
                 <button class="btn btn-sm btn-danger" hx-post="{% url 'customers:customer_delete' customer.pk %}"
                     hx-confirm="Deseja realmente excluir '{{ customer.name }}'?">
-                    🗑️
+                    Excluir
                 </button>
             </td>
         </tr>

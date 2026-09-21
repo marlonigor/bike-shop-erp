@@ -4,8 +4,8 @@
 {% block page_title %}Detalhes do Produto{% endblock %}
 
 {% block header_actions %}
-<a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-primary">✏️ Editar</a>
-<a href="{% url 'catalog:product_list' %}" class="btn btn-secondary">← Voltar</a>
+<a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-primary">Editar</a>
+<a href="{% url 'catalog:product_list' %}" class="btn btn-secondary">Voltar</a>
 {% endblock %}
 
 {% block content %}
@@ -13,8 +13,8 @@
 <div class="card" style="margin-bottom: var(--space-xl);">
     <div class="product-header" style="display: flex; gap: var(--space-xl); align-items: flex-start;">
         <div class="product-icon"
-            style="width: 100px; height: 100px; background: var(--gradient-primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 3rem; flex-shrink: 0;">
-            📦
+            style="width: 100px; height: 100px; background: var(--gradient-primary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
         </div>
         <div class="product-info" style="flex: 1;">
             <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: var(--space-sm);">{{ product.name }}</h2>
@@ -26,13 +26,13 @@
             </p>
             <div style="display: flex; gap: var(--space-xl);">
                 <div>
-                    <span style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Preço
+                    <span style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Preco
                         de Venda</span>
                     <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">R$ {{
                         product.price|floatformat:2 }}</p>
                 </div>
                 <div>
-                    <span style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Preço
+                    <span style="color: var(--color-text-muted); font-size: 0.75rem; text-transform: uppercase;">Preco
                         de Custo</span>
                     <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-text-secondary);">R$ {{
                         product.cost|floatformat:2 }}</p>
@@ -45,7 +45,9 @@
 <!-- Stats Grid -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon">📊</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">{{ margin|floatformat:1 }}%</span>
             <span class="stat-label">Margem de Lucro</span>
@@ -53,7 +55,9 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">📦</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">{{ total_stock }}</span>
             <span class="stat-label">Total em Estoque</span>
@@ -61,7 +65,9 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">🛒</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">{{ total_sold }}</span>
             <span class="stat-label">Unidades Vendidas</span>
@@ -69,7 +75,9 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">💰</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">R$ {{ total_revenue|floatformat:2 }}</span>
             <span class="stat-label">Receita Total</span>
@@ -82,14 +90,14 @@
     <!-- Estoque por Depósito -->
     <div class="card">
         <div class="card-header">
-            <h3>📍 Estoque por Depósito</h3>
+            <h3>Estoque por Deposito</h3>
         </div>
         <div class="card-body">
             {% if stock_by_warehouse %}
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Depósito</th>
+                        <th>Deposito</th>
                         <th>Quantidade</th>
                         <th>Status</th>
                     </tr>
@@ -100,11 +108,13 @@
                         <td>{{ stock.warehouse.name }}</td>
                         <td><strong>{{ stock.quantity }}</strong></td>
                         <td>
-                            {% if stock.quantity < 5 %} <span class="badge badge-danger">Crítico</span>
-                                {% elif stock.quantity < 10 %} <span class="badge badge-warning">Baixo</span>
-                                    {% else %}
-                                    <span class="badge badge-success">OK</span>
-                                    {% endif %}
+                            {% if stock.quantity < 5 %}
+                            <span class="badge badge-danger">Critico</span>
+                            {% elif stock.quantity < 10 %}
+                            <span class="badge badge-warning">Baixo</span>
+                            {% else %}
+                            <span class="badge badge-success">OK</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -119,7 +129,7 @@
     <!-- Histórico de Vendas -->
     <div class="card">
         <div class="card-header">
-            <h3>📈 Últimas Vendas</h3>
+            <h3>Ultimas Vendas</h3>
         </div>
         <div class="card-body">
             {% if sales_history %}

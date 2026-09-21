@@ -32,11 +32,11 @@
                 <td>{{ movement.warehouse.name }}</td>
                 <td>
                     {% if movement.movement_type == 'IN' %}
-                    <span class="badge badge-success">Entrada 📥</span>
+                    <span class="badge badge-success">Entrada</span>
                     {% elif movement.movement_type == 'OUT' %}
-                    <span class="badge badge-danger">Saída 📤</span>
+                    <span class="badge badge-danger">Saida</span>
                     {% elif movement.movement_type == 'ADJUST' %}
-                    <span class="badge badge-warning">Ajuste ⚠️</span>
+                    <span class="badge badge-warning">Ajuste</span>
                     {% endif %}
                 </td>
                 <td class="text-right">

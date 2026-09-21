@@ -10,17 +10,18 @@
             <span class="product-price">R$ {{ item.product.price|floatformat:2 }}</span>
             {% if item.stock == 0 %}
             <span class="badge badge-danger">Sem estoque</span>
-            {% elif item.stock < 5 %} <span class="product-stock low">⚠️ Estoque: {{ item.stock }}</span>
-                {% else %}
-                <span class="product-stock">Estoque: {{ item.stock }}</span>
-                {% endif %}
+            {% elif item.stock < 5 %}
+            <span class="product-stock low">Estoque: {{ item.stock }}</span>
+            {% else %}
+            <span class="product-stock">Estoque: {{ item.stock }}</span>
+            {% endif %}
         </div>
         <form hx-post="{% url 'sales:cart_add' %}" hx-target="#cart-items" hx-swap="innerHTML"
             hx-indicator="#pdv-spinner">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ item.product.id }}">
             <input type="number" name="quantity" value="1" min="1" max="{{ item.stock }}" class="qty-input">
-            <button type="submit" class="btn btn-sm btn-primary" {% if item.stock==0 %}disabled{% endif %}>
+            <button type="submit" class="btn btn-sm btn-primary" {% if item.stock == 0 %}disabled{% endif %}>
                 + Adicionar
             </button>
         </form>
@@ -29,7 +30,7 @@
 </ul>
 {% else %}
 <div class="empty-results">
-    <p>🔍 Nenhum produto encontrado.</p>
+    <p>Nenhum produto encontrado.</p>
     <small>Tente buscar por nome ou SKU</small>
 </div>
 {% endif %}

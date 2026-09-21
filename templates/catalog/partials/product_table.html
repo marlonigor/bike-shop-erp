@@ -6,8 +6,8 @@
             <th>Nome</th>
             <th>Categoria</th>
             <th class="text-right">Custo</th>
-            <th class="text-right">Preço</th>
-            <th class="text-center">Ações</th>
+            <th class="text-right">Preco</th>
+            <th class="text-center">Acoes</th>
         </tr>
     </thead>
     <tbody>
@@ -20,10 +20,10 @@
             <td class="text-right">R$ {{ product.cost|floatformat:2 }}</td>
             <td class="text-right">R$ {{ product.price|floatformat:2 }}</td>
             <td class="text-center actions">
-                <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-sm">✏️</a>
+                <a href="{% url 'catalog:product_edit' product.pk %}" class="btn btn-sm btn-secondary">Editar</a>
                 <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:product_delete' product.pk %}"
                     hx-confirm="Deseja realmente excluir '{{ product.name }}'?">
-                    🗑️
+                    Excluir
                 </button>
             </td>
         </tr>

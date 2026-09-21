@@ -15,7 +15,7 @@
             <tr>
                 <th>Nome</th>
                 <th>Produtos</th>
-                <th class="text-center">Ações</th>
+                <th class="text-center">Acoes</th>
             </tr>
         </thead>
         <tbody>
@@ -24,10 +24,10 @@
                 <td><strong>{{ brand.name }}</strong></td>
                 <td>{{ brand.products.count }}</td>
                 <td class="text-center actions">
-                    <a href="{% url 'catalog:brand_edit' brand.pk %}" class="btn btn-sm">✏️</a>
+                    <a href="{% url 'catalog:brand_edit' brand.pk %}" class="btn btn-sm btn-secondary">Editar</a>
                     <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:brand_delete' brand.pk %}"
                         hx-confirm="Deseja realmente excluir '{{ brand.name }}'?">
-                        🗑️
+                        Excluir
                     </button>
                 </td>
             </tr>

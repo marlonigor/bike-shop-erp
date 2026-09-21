@@ -17,7 +17,7 @@
                 <th>Nome</th>
                 <th>Tipo</th>
                 <th>Produtos</th>
-                <th class="text-center">Ações</th>
+                <th class="text-center">Acoes</th>
             </tr>
         </thead>
         <tbody>
@@ -26,17 +26,17 @@
                 <td><strong>{{ category.name }}</strong></td>
                 <td>
                     {% if category.type == 'SERVICE' %}
-                    <span class="badge">🔧 Serviço</span>
+                    <span class="badge">Servico</span>
                     {% else %}
-                    <span class="badge badge-primary">📦 Produto</span>
+                    <span class="badge badge-primary">Produto</span>
                     {% endif %}
                 </td>
                 <td>{{ category.products.count }}</td>
                 <td class="text-center actions">
-                    <a href="{% url 'catalog:category_edit' category.pk %}" class="btn btn-sm">✏️</a>
+                    <a href="{% url 'catalog:category_edit' category.pk %}" class="btn btn-sm btn-secondary">Editar</a>
                     <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:category_delete' category.pk %}"
                         hx-confirm="Deseja realmente excluir '{{ category.name }}'?">
-                        🗑️
+                        Excluir
                     </button>
                 </td>
             </tr>

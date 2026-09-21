@@ -18,12 +18,12 @@
         <span>Processando...</span>
     </div>
 
-    <!-- Cabeçalho PDV -->
+    <!-- Cabecalho PDV -->
     <div class="pdv-header">
         <div class="form-group">
-            <label>Depósito</label>
+            <label>Deposito</label>
             <select name="warehouse_id" x-model="warehouseId" required>
-                <option value="">Selecione o depósito...</option>
+                <option value="">Selecione o deposito...</option>
                 {% for wh in warehouses %}
                 <option value="{{ wh.id }}">{{ wh.name }}</option>
                 {% endfor %}
@@ -46,7 +46,7 @@
         <div class="pdv-search">
             <div class="card">
                 <div class="card-header">
-                    <h3>🔍 Buscar Produto</h3>
+                    <h3>Buscar Produto</h3>
                 </div>
                 <div class="card-body">
                     <input type="text" name="q" placeholder="Digite o nome ou SKU... (Esc limpa)"
@@ -65,7 +65,7 @@
         <div class="pdv-cart">
             <div class="card">
                 <div class="card-header">
-                    <h3>🛒 Carrinho</h3>
+                    <h3>Carrinho</h3>
                     <div class="cart-header-actions">
                         <span class="cart-total" id="cart-total-header">
                             R$ {{ cart_total|floatformat:2 }}
@@ -74,7 +74,7 @@
                         <button class="btn btn-sm btn-danger" hx-post="{% url 'sales:cart_clear' %}"
                             hx-target="#cart-items" hx-swap="innerHTML" hx-indicator="#pdv-spinner"
                             title="Limpar carrinho">
-                            🗑️
+                            Limpar
                         </button>
                         {% endif %}
                     </div>
@@ -92,17 +92,17 @@
                         </span>
                     </div>
 
-                    <!-- Botão abre modal de confirmação -->
+                    <!-- Botao abre modal de confirmacao -->
                     <button type="button" class="btn btn-primary btn-lg btn-block"
                         :disabled="!warehouseId || !clientId || {{ cart|length }} == 0" @click="showConfirm = true">
-                        ✅ Finalizar Venda
+                        Finalizar Venda
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Confirmação -->
+    <!-- Modal de Confirmacao -->
     <div class="modal-overlay" x-show="showConfirm" x-cloak x-transition:enter="modal-enter"
         x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end"
         x-transition:leave="modal-leave" x-transition:leave-start="modal-leave-start"
@@ -111,7 +111,7 @@
 
         <div class="modal-content">
             <div class="modal-header">
-                <h3>⚡ Confirmar Venda</h3>
+                <h3>Confirmar Venda</h3>
             </div>
             <div class="modal-body">
                 <p>Deseja finalizar esta venda?</p>
@@ -130,7 +130,7 @@
                     @htmx:after-request="showConfirm = false">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-success btn-lg">
-                        ✅ Confirmar
+                        Confirmar
                     </button>
                 </form>
             </div>
@@ -138,7 +138,7 @@
     </div>
 </div>
 
-<!-- Keyboard shortcut: F2 foca na busca -->
+<!-- Atalho de teclado: F2 foca na busca -->
 <script>
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F2') {

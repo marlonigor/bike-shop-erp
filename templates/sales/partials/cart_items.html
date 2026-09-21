@@ -26,7 +26,7 @@
             <td class="text-center">
                 <button class="btn-remove" hx-post="{% url 'sales:cart_remove' %}" hx-target="#cart-items"
                     hx-swap="innerHTML" hx-vals='{"product_id": "{{ item.product_id }}"}' title="Remover item">
-                    ✕
+                    &times;
                 </button>
             </td>
         </tr>
@@ -37,13 +37,15 @@
 <script>
     document.getElementById('cart-total').textContent = 'R$ {{ cart_total|floatformat:2 }}';
     document.getElementById('cart-total-header').textContent = 'R$ {{ cart_total|floatformat:2 }}';
-    // Atualizar total no modal de confirmação
+    // Atualizar total no modal de confirmacao
     var ct = document.getElementById('confirm-total');
     if (ct) ct.textContent = 'Total: R$ {{ cart_total|floatformat:2 }}';
 </script>
 {% else %}
 <div class="empty-cart">
-    <div class="empty-cart-icon">🛒</div>
+    <div class="empty-cart-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+    </div>
     <p>Carrinho vazio</p>
     <small>Busque produtos para adicionar</small>
 </div>

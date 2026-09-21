@@ -7,7 +7,9 @@
 <!-- Stats Cards -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon">💰</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">R$ {{ total_vendas|floatformat:2 }}</span>
             <span class="stat-label">Total em Vendas</span>
@@ -15,7 +17,9 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">🛒</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">{{ vendas_hoje }}</span>
             <span class="stat-label">Vendas Finalizadas</span>
@@ -23,7 +27,9 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">📦</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">{{ produtos_ativos }}</span>
             <span class="stat-label">Produtos Ativos</span>
@@ -31,7 +37,9 @@
     </div>
 
     <div class="stat-card accent">
-        <div class="stat-icon">⚠️</div>
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
         <div class="stat-content">
             <span class="stat-value">{{ produtos_baixo_estoque }}</span>
             <span class="stat-label">Baixo Estoque</span>
@@ -44,9 +52,9 @@
     <!-- Gráfico de Vendas -->
     <div class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
-            <h3>📈 Desempenho de Vendas (Mensal)</h3>
+            <h3>Desempenho de Vendas (Mensal)</h3>
             <div class="header-actions">
-                <span class="badge">Últimos 6 Meses</span>
+                <span class="badge">Ultimos 6 Meses</span>
             </div>
         </div>
         <div class="card-body" style="height: 350px;">
@@ -57,7 +65,7 @@
     <!-- Últimas Vendas -->
     <div class="card">
         <div class="card-header">
-            <h3>Últimas Vendas</h3>
+            <h3>Ultimas Vendas</h3>
             <a href="{% url 'sales:pdv' %}" class="btn btn-sm">Ver Todas</a>
         </div>
         <div class="card-body">
@@ -65,7 +73,7 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Código</th>
+                        <th>Codigo</th>
                         <th>Cliente</th>
                         <th>Total</th>
                     </tr>
@@ -89,7 +97,7 @@
     <!-- Alertas de Estoque -->
     <div class="card">
         <div class="card-header">
-            <h3>⚠️ Alertas de Estoque</h3>
+            <h3>Alertas de Estoque</h3>
             <a href="{% url 'stock:stock_list' %}?low_stock=1" class="btn btn-sm">Ver Todos</a>
         </div>
         <div class="card-body">
@@ -98,7 +106,7 @@
                 <thead>
                     <tr>
                         <th>Produto</th>
-                        <th>Depósito</th>
+                        <th>Deposito</th>
                         <th>Qtd</th>
                     </tr>
                 </thead>
@@ -113,7 +121,7 @@
                 </tbody>
             </table>
             {% else %}
-            <p class="empty-state success">✅ Estoque em dia!</p>
+            <p class="empty-state success">Estoque em dia.</p>
             {% endif %}
         </div>
     </div>
@@ -134,70 +142,70 @@
         const salesChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {{ chart_labels| safe }},
-        datasets: [{
-            label: 'Vendas (R$)',
-            data: {{ chart_data| safe }},
-        borderColor: '#667eea',
-        borderWidth: 3,
-        backgroundColor: gradient,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#ffffff',
-        pointBorderColor: '#667eea',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Vendas (R$)',
+                    data: {{ chart_data|safe }},
+                    borderColor: '#667eea',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#667eea',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: 'rgba(10, 10, 26, 0.9)',
-                titleColor: '#ffffff',
-                bodyColor: '#ffffff',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                padding: 12,
-                displayColors: false,
-                callbacks: {
-                    label: function (context) {
-                        return 'R$ ' + context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 10, 26, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function (context) {
+                                return 'R$ ' + context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            font: { size: 11 },
+                            callback: function (value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR');
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            font: { size: 11 }
+                        }
                     }
                 }
             }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.05)',
-                    drawBorder: false
-                },
-                ticks: {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    font: { size: 11 },
-                    callback: function (value) {
-                        return 'R$ ' + value.toLocaleString('pt-BR');
-                    }
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    font: { size: 11 }
-                }
-            }
-        }
-    }
         });
     });
 </script>

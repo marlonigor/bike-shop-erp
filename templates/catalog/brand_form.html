@@ -8,7 +8,7 @@
     {% if form.non_field_errors %}
     <div class="alert-danger">
         {% for error in form.non_field_errors %}
-        <p>⚠️ {{ error }}</p>
+        <p>{{ error }}</p>
         {% endfor %}
     </div>
     {% endif %}

@@ -1,10 +1,11 @@
 import pytest
 from django.urls import reverse
-from catalog.models import Product, Category, Brand
+
+from catalog.models import Brand, Category, Product
+
 
 @pytest.mark.django_db
 class TestProductViews:
-    
     @pytest.fixture
     def setup_data(self):
         category = Category.objects.create(name='Bikes', type='product')
@@ -15,7 +16,7 @@ class TestProductViews:
             price=1000.00,
             cost=500.00,
             category=category,
-            brand=brand
+            brand=brand,
         )
         return {'category': category, 'brand': brand, 'product': product}
 
@@ -37,7 +38,7 @@ class TestProductViews:
             'cost': 800.00,
             'category': setup_data['category'].id,
             'brand': setup_data['brand'].id,
-            'active': True
+            'active': True,
         }
         response = client.post(url, data)
         assert response.status_code == 302
@@ -47,11 +48,11 @@ class TestProductViews:
         url = reverse('catalog:product_create')
         data = {
             'name': 'Bike Duplicada',
-            'sku': 'CAL-001', # Já existe
+            'sku': 'CAL-001',  # Já existe
             'price': 1500.00,
             'cost': 800.00,
             'category': setup_data['category'].id,
-            'brand': setup_data['brand'].id
+            'brand': setup_data['brand'].id,
         }
         response = client.post(url, data)
         assert response.status_code == 200
@@ -68,11 +69,11 @@ class TestProductViews:
             'cost': 500.00,
             'category': setup_data['category'].id,
             'brand': setup_data['brand'].id,
-            'active': True
+            'active': True,
         }
         response = client.post(url, data)
         assert response.status_code == 302
-        
+
         product.refresh_from_db()
         assert product.name == 'Caloi 10 Editada'
         assert product.price == 1200.00
@@ -80,9 +81,9 @@ class TestProductViews:
     def test_product_delete_view_soft_delete(self, client, setup_data):
         product = setup_data['product']
         url = reverse('catalog:product_delete', args=[product.id])
-        
+
         response = client.post(url)
         assert response.status_code == 302
-        
+
         product.refresh_from_db()
-        assert product.active is False # Soft delete
+        assert product.active is False  # Soft delete

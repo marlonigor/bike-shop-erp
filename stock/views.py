@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from catalog.models import Product
 from core.exceptions import InsufficientStockError
+
 from .forms import StockAdjustmentForm
 from .models import Stock, StockMovement, Warehouse
 from .services import StockService
@@ -33,17 +34,25 @@ def stock_list(request: HttpRequest) -> HttpResponse:
         'low_stock': low_stock,
     }
 
-    template_name = 'stock/partials/stock_table.html' if request.headers.get('HX-Request') else 'stock/stock_list.html'
+    template_name = (
+        'stock/partials/stock_table.html'
+        if request.headers.get('HX-Request')
+        else 'stock/stock_list.html'
+    )
     return render(request, template_name, context)
 
 
 def stock_movement(request: HttpRequest) -> HttpResponse:
     """Processa entrada e saida de mercadorias no estoque."""
     if request.method != 'POST':
-        return render(request, 'stock/stock_movement.html', {
-            'products': Product.objects.filter(active=True),
-            'warehouses': Warehouse.objects.all(),
-        })
+        return render(
+            request,
+            'stock/stock_movement.html',
+            {
+                'products': Product.objects.filter(active=True),
+                'warehouses': Warehouse.objects.all(),
+            },
+        )
 
     product = get_object_or_404(Product, pk=request.POST.get('product_id'))
     warehouse = get_object_or_404(Warehouse, pk=request.POST.get('warehouse_id'))

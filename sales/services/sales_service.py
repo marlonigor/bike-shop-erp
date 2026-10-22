@@ -3,14 +3,14 @@ SalesService - Serviço para gestão de vendas e integração com estoque.
 """
 
 from decimal import Decimal
-from typing import List, Dict
+
 from django.db import transaction
-from sales.models import Sale, SaleItem
-from stock.services import StockService
-from stock.models import StockMovement
+
 from core.models import Client
-from stock.models import Warehouse
-from catalog.models import Product
+from sales.models import Sale, SaleItem
+from stock.models import StockMovement, Warehouse
+from stock.services import StockService
+
 
 class SalesService:
     """
@@ -20,10 +20,7 @@ class SalesService:
     @staticmethod
     @transaction.atomic
     def create_sale(
-        client: Client,
-        warehouse: Warehouse,
-        items_data: List[Dict],
-        notes: str = ""
+        client: Client, warehouse: Warehouse, items_data: list[dict], notes: str = ''
     ) -> Sale:
         """
         Cria uma venda e realiza a baixa de estoque para cada item.
@@ -36,10 +33,7 @@ class SalesService:
         """
         # 1. Criar o cabeçalho da venda
         sale = Sale.objects.create(
-            client=client,
-            warehouse=warehouse,
-            notes=notes,
-            status=Sale.Status.COMPLETED
+            client=client, warehouse=warehouse, notes=notes, status=Sale.Status.COMPLETED
         )
 
         total_sale_amount = Decimal('0.00')
@@ -60,7 +54,7 @@ class SalesService:
                 product=product,
                 quantity=quantity,
                 unit_price=unit_price,
-                total_price=item_total
+                total_price=item_total,
             )
 
             # Baixar estoque via StockService
@@ -72,7 +66,7 @@ class SalesService:
                 quantity=quantity,
                 reference_type=StockMovement.ReferenceType.SALE,
                 reference_id=sale.id,
-                reason=f"Venda {sale.id}"
+                reason=f'Venda {sale.id}',
             )
 
         # 3. Atualizar o total da venda

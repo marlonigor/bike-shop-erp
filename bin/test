@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Running linter and format check..."
+docker-compose run --rm web ruff check .
+docker-compose run --rm web ruff format --check .
+
+echo "Running test suite..."
 docker-compose run --rm web pytest "$@"

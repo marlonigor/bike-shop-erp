@@ -2,29 +2,28 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from core.exceptions import InsufficientStockError
-from .models import StockMovement, Stock
+
+from .models import Stock, StockMovement
 
 
 @receiver(post_save, sender=StockMovement)
 def update_stock_balance(sender, instance, created, **kwargs):
     """
     Atualiza o saldo da tabela Stock sempre que uma StockMovement é criada.
-    
+
     - IN: Incrementa o saldo
     - OUT: Decrementa o saldo (valida disponibilidade)
     - ADJUST: Define saldo exato (incrementa ou decrementa conforme diferença)
     """
     if not created:
-        # Se for apenas uma edição de registro já existente, não alteramos o saldo 
+        # Se for apenas uma edição de registro já existente, não alteramos o saldo
         # para evitar recálculos complexos e erros de auditoria.
         # Em um ERP real, edição de movimento é geralmente bloqueada.
         return
 
     # Busca ou cria o registro de saldo para aquele Produto + Depósito com bloqueio pessimista
     stock, _ = Stock.objects.select_for_update().get_or_create(
-        product=instance.product,
-        warehouse=instance.warehouse,
-        defaults={'quantity': 0}
+        product=instance.product, warehouse=instance.warehouse, defaults={'quantity': 0}
     )
 
     if instance.movement_type == StockMovement.MovementType.IN:

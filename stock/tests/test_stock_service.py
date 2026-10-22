@@ -1,20 +1,23 @@
 import pytest
-from stock.services.stock_service import StockService
-from stock.models import Stock, Warehouse
+
+from catalog.models import Brand, Category, Product
 from core.exceptions import InsufficientStockError
-from catalog.models import Product, Category, Brand
+from stock.models import Stock, Warehouse
+from stock.services.stock_service import StockService
+
 
 @pytest.mark.django_db
 class TestStockService:
-    
     @pytest.fixture
     def setup_data(self):
         category = Category.objects.create(name='Bikes', type='product')
         brand = Brand.objects.create(name='Caloi')
-        product = Product.objects.create(name='Bike', sku='B-01', price=100.0, cost=50.0, category=category, brand=brand)
+        product = Product.objects.create(
+            name='Bike', sku='B-01', price=100.0, cost=50.0, category=category, brand=brand
+        )
         warehouse = Warehouse.objects.create(name='Depósito Central', location='SP')
         stock = Stock.objects.create(product=product, warehouse=warehouse, quantity=10)
-        
+
         return {'product': product, 'warehouse': warehouse, 'stock': stock}
 
     def test_add_stock_increases_quantity(self, setup_data):
@@ -22,7 +25,7 @@ class TestStockService:
             product=setup_data['product'],
             warehouse=setup_data['warehouse'],
             quantity=5,
-            reason='Compra'
+            reason='Compra',
         )
         setup_data['stock'].refresh_from_db()
         # 10 inicial + 5 adicionados = 15
@@ -33,7 +36,7 @@ class TestStockService:
             product=setup_data['product'],
             warehouse=setup_data['warehouse'],
             quantity=3,
-            reason='Venda'
+            reason='Venda',
         )
         setup_data['stock'].refresh_from_db()
         # 10 inicial - 3 removidos = 7
@@ -44,8 +47,8 @@ class TestStockService:
             StockService.remove_stock(
                 product=setup_data['product'],
                 warehouse=setup_data['warehouse'],
-                quantity=20, # Maior que 10
-                reason='Venda'
+                quantity=20,  # Maior que 10
+                reason='Venda',
             )
 
     def test_adjust_stock_sets_exact_quantity(self, setup_data):
@@ -53,17 +56,17 @@ class TestStockService:
             product=setup_data['product'],
             warehouse=setup_data['warehouse'],
             new_quantity=50,
-            reason='Contagem Inventário'
+            reason='Contagem Inventário',
         )
         setup_data['stock'].refresh_from_db()
         assert setup_data['stock'].quantity == 50
 
     def test_stock_quantity_non_negative_constraint(self, setup_data):
         from django.db import IntegrityError
+
         with pytest.raises(IntegrityError):
             Stock.objects.create(
                 product=setup_data['product'],
                 warehouse=Warehouse.objects.create(name='Outro Depósito', location='RJ'),
-                quantity=-5
+                quantity=-5,
             )
-

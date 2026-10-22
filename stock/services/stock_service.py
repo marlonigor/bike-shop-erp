@@ -7,15 +7,15 @@ garantindo rastreabilidade e validação de regras de negócio.
 
 from django.db import transaction
 
+from catalog.models import Product
 from core.exceptions import InsufficientStockError
 from stock.models import Stock, StockMovement, Warehouse
-from catalog.models import Product
 
 
 class StockService:
     """
     Serviço para operações de estoque.
-    
+
     Todas as operações criam StockMovement, e o signal post_save
     atualiza automaticamente o saldo na tabela Stock.
     """
@@ -28,7 +28,7 @@ class StockService:
         quantity: int,
         reference_type: str = StockMovement.ReferenceType.MANUAL,
         reference_id=None,
-        reason: str = "",
+        reason: str = '',
     ) -> StockMovement:
         """
         Adiciona estoque (entrada).
@@ -48,13 +48,11 @@ class StockService:
             ValueError: Se quantity <= 0
         """
         if quantity <= 0:
-            raise ValueError("Quantidade deve ser maior que zero")
+            raise ValueError('Quantidade deve ser maior que zero')
 
         # Garante bloqueio pessimista (row-level lock) no banco de dados
         Stock.objects.select_for_update().get_or_create(
-            product=product,
-            warehouse=warehouse,
-            defaults={'quantity': 0}
+            product=product, warehouse=warehouse, defaults={'quantity': 0}
         )
 
         movement = StockMovement.objects.create(
@@ -76,7 +74,7 @@ class StockService:
         quantity: int,
         reference_type: str = StockMovement.ReferenceType.MANUAL,
         reference_id=None,
-        reason: str = "",
+        reason: str = '',
     ) -> StockMovement:
         """
         Remove estoque (saída).
@@ -97,13 +95,11 @@ class StockService:
             InsufficientStockError: Se estoque insuficiente
         """
         if quantity <= 0:
-            raise ValueError("Quantidade deve ser maior que zero")
+            raise ValueError('Quantidade deve ser maior que zero')
 
         # Bloqueio pessimista (row-level lock) para evitar race condition
         stock, _ = Stock.objects.select_for_update().get_or_create(
-            product=product,
-            warehouse=warehouse,
-            defaults={'quantity': 0}
+            product=product, warehouse=warehouse, defaults={'quantity': 0}
         )
         if stock.quantity < quantity:
             raise InsufficientStockError(
@@ -130,7 +126,7 @@ class StockService:
         product: Product,
         warehouse: Warehouse,
         new_quantity: int,
-        reason: str = "",
+        reason: str = '',
     ) -> StockMovement | None:
         """
         Ajusta estoque para um valor exato.
@@ -151,12 +147,10 @@ class StockService:
             ValueError: Se new_quantity < 0
         """
         if new_quantity < 0:
-            raise ValueError("Quantidade não pode ser negativa")
+            raise ValueError('Quantidade não pode ser negativa')
 
         stock, _ = Stock.objects.select_for_update().get_or_create(
-            product=product,
-            warehouse=warehouse,
-            defaults={'quantity': 0}
+            product=product, warehouse=warehouse, defaults={'quantity': 0}
         )
         current = stock.quantity
         diff = new_quantity - current
@@ -171,7 +165,7 @@ class StockService:
             movement_type=StockMovement.MovementType.ADJUST,
             new_quantity=new_quantity,
             reference_type=StockMovement.ReferenceType.MANUAL,
-            reason=reason or f"Ajuste de estoque: {current} -> {new_quantity}",
+            reason=reason or f'Ajuste de estoque: {current} -> {new_quantity}',
         )
         return movement
 
@@ -194,9 +188,7 @@ class StockService:
             return 0
 
     @staticmethod
-    def check_availability(
-        product: Product, warehouse: Warehouse, quantity: int
-    ) -> bool:
+    def check_availability(product: Product, warehouse: Warehouse, quantity: int) -> bool:
         """
         Verifica se há estoque suficiente para uma operação.
 

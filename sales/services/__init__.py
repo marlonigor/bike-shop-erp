@@ -1,3 +1,3 @@
 from .sales_service import SalesService
 
-__all__ = ["SalesService"]
+__all__ = ['SalesService']

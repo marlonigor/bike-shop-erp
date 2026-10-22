@@ -13,7 +13,9 @@ from .models import Brand, Category, Product
 
 def product_list(request: HttpRequest) -> HttpResponse:
     """Lista todos os produtos ativos com filtros por categoria e busca textual."""
-    products: QuerySet[Product] = Product.objects.select_related('category', 'brand').order_by('name')
+    products: QuerySet[Product] = Product.objects.select_related('category', 'brand').order_by(
+        'name'
+    )
     categories = list(Category.objects.all())
 
     category_filter = request.GET.get('category')
@@ -90,7 +92,11 @@ def _build_product_metrics(product: Product) -> dict[str, Any]:
     from sales.models import SaleItem
     from stock.models import Stock
 
-    margin = ((product.price - product.cost) / product.price * 100) if product.price > 0 else Decimal('0.00')
+    margin = (
+        ((product.price - product.cost) / product.price * 100)
+        if product.price > 0
+        else Decimal('0.00')
+    )
     stock_by_warehouse = list(Stock.objects.filter(product=product).select_related('warehouse'))
     sales_history = list(
         SaleItem.objects.filter(product=product)
@@ -119,6 +125,7 @@ def product_detail(request: HttpRequest, pk: int) -> HttpResponse:
 # ============================================
 # Categoria CRUD
 # ============================================
+
 
 def category_list(request: HttpRequest) -> HttpResponse:
     """Lista todas as categorias cadastradas."""
@@ -173,6 +180,7 @@ def category_delete(request: HttpRequest, pk: int) -> HttpResponse:
 # ============================================
 # Marca CRUD
 # ============================================
+
 
 def brand_list(request: HttpRequest) -> HttpResponse:
     """Lista todas as marcas cadastradas."""

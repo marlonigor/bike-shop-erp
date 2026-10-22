@@ -1,51 +1,47 @@
 from django.db import models
-from core.models import ModelBase
+
 from catalog.models import Product
+from core.models import ModelBase
+
 
 class Warehouse(ModelBase):
-    name = models.CharField(max_length=100, verbose_name="Nome")
-    location = models.CharField(max_length=100, verbose_name="Localização")
+    name = models.CharField(max_length=100, verbose_name='Nome')
+    location = models.CharField(max_length=100, verbose_name='Localização')
 
     class Meta:
-        verbose_name = "Depósito"
-        verbose_name_plural = "Depósitos"
+        verbose_name = 'Depósito'
+        verbose_name_plural = 'Depósitos'
         ordering = ['name']
 
     def __str__(self):
         return self.name
 
+
 class Stock(ModelBase):
     product = models.ForeignKey(
-        Product,
-        on_delete=models.PROTECT,
-        related_name='stocks',
-        verbose_name="Produto"
+        Product, on_delete=models.PROTECT, related_name='stocks', verbose_name='Produto'
     )
     warehouse = models.ForeignKey(
-        Warehouse,
-        on_delete=models.PROTECT,
-        related_name='stocks',
-        verbose_name="Depósito"
+        Warehouse, on_delete=models.PROTECT, related_name='stocks', verbose_name='Depósito'
     )
-    quantity = models.IntegerField(default=0, verbose_name="Quantidade")
+    quantity = models.IntegerField(default=0, verbose_name='Quantidade')
 
     class Meta:
-        verbose_name = "Estoque"
-        verbose_name_plural = "Estoques"
+        verbose_name = 'Estoque'
+        verbose_name_plural = 'Estoques'
         constraints = [
             models.UniqueConstraint(
-                fields=['product', 'warehouse'],
-                name='unique_stock_product_warehouse'
+                fields=['product', 'warehouse'], name='unique_stock_product_warehouse'
             ),
             models.CheckConstraint(
-                condition=models.Q(quantity__gte=0),
-                name='stock_quantity_non_negative'
+                condition=models.Q(quantity__gte=0), name='stock_quantity_non_negative'
             ),
         ]
         ordering = ['product__name']
 
     def __str__(self):
-        return f"{self.product} em {self.warehouse}: {self.quantity}"
+        return f'{self.product} em {self.warehouse}: {self.quantity}'
+
 
 class StockMovement(ModelBase):
     class MovementType(models.TextChoices):
@@ -60,51 +56,33 @@ class StockMovement(ModelBase):
         MANUAL = 'MANUAL', 'Manual'
 
     product = models.ForeignKey(
-        Product,
-        on_delete=models.PROTECT,
-        related_name='movements',
-        verbose_name="Produto"
+        Product, on_delete=models.PROTECT, related_name='movements', verbose_name='Produto'
     )
     warehouse = models.ForeignKey(
-        Warehouse,
-        on_delete=models.PROTECT,
-        related_name='movements',
-        verbose_name="Depósito"
+        Warehouse, on_delete=models.PROTECT, related_name='movements', verbose_name='Depósito'
     )
-    quantity = models.PositiveIntegerField(verbose_name="Quantidade")
+    quantity = models.PositiveIntegerField(verbose_name='Quantidade')
     movement_type = models.CharField(
-        max_length=10,
-        choices=MovementType.choices,
-        verbose_name="Tipo de Movimento"
+        max_length=10, choices=MovementType.choices, verbose_name='Tipo de Movimento'
     )
-    reason = models.CharField(
-        max_length=255, 
-        blank=True, 
-        verbose_name="Motivo"
-    )
-    
+    reason = models.CharField(max_length=255, blank=True, verbose_name='Motivo')
+
     # Campos de Rastreabilidade (Generic Reference)
     reference_type = models.CharField(
         max_length=20,
         choices=ReferenceType.choices,
         default=ReferenceType.MANUAL,
-        verbose_name="Origem da Movimentação"
+        verbose_name='Origem da Movimentação',
     )
-    reference_id = models.UUIDField(
-        null=True, 
-        blank=True, 
-        verbose_name="ID da Referência"
-    )
+    reference_id = models.UUIDField(null=True, blank=True, verbose_name='ID da Referência')
     new_quantity = models.IntegerField(
-        null=True, 
-        blank=True, 
-        verbose_name="Nova Quantidade (Ajuste)"
+        null=True, blank=True, verbose_name='Nova Quantidade (Ajuste)'
     )
 
     class Meta:
-        verbose_name = "Movimentação de Estoque"
-        verbose_name_plural = "Movimentações de Estoque"
+        verbose_name = 'Movimentação de Estoque'
+        verbose_name_plural = 'Movimentações de Estoque'
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.get_movement_type_display()} - {self.product.sku} ({self.quantity})"
+        return f'{self.get_movement_type_display()} - {self.product.sku} ({self.quantity})'

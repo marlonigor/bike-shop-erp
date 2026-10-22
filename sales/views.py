@@ -1,12 +1,14 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, JsonResponse
 from decimal import Decimal
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
+
 from catalog.models import Product
-from stock.models import Warehouse
 from core.models import Client
-from .services import SalesService
+from stock.models import Warehouse
 from stock.services import StockService
+
+from .services import SalesService
 
 
 def _cart_context(request):
@@ -50,10 +52,12 @@ def product_search(request):
         stock = 0
         if warehouse_id:
             stock = StockService.get_balance(product, Warehouse.objects.get(id=warehouse_id))
-        results.append({
-            'product': product,
-            'stock': stock,
-        })
+        results.append(
+            {
+                'product': product,
+                'stock': stock,
+            }
+        )
 
     return render(request, 'sales/partials/product_search_results.html', {'results': results})
 
@@ -75,24 +79,30 @@ def cart_add(request):
                 item['total'] = str(Decimal(item['unit_price']) * item['quantity'])
                 break
         else:
-            cart.append({
-                'product_id': str(product.id),
-                'sku': product.sku,
-                'name': product.name,
-                'quantity': quantity,
-                'unit_price': str(product.price),
-                'total': str(product.price * quantity),
-            })
+            cart.append(
+                {
+                    'product_id': str(product.id),
+                    'sku': product.sku,
+                    'name': product.name,
+                    'quantity': quantity,
+                    'unit_price': str(product.price),
+                    'total': str(product.price * quantity),
+                }
+            )
 
         request.session['cart'] = cart
         request.session.modified = True
 
         cart_total = sum(Decimal(item['total']) for item in cart)
 
-        return render(request, 'sales/partials/cart_items.html', {
-            'cart': cart,
-            'cart_total': cart_total,
-        })
+        return render(
+            request,
+            'sales/partials/cart_items.html',
+            {
+                'cart': cart,
+                'cart_total': cart_total,
+            },
+        )
 
     return HttpResponse(status=400)
 
@@ -110,10 +120,14 @@ def cart_remove(request):
 
         cart_total = sum(Decimal(item['total']) for item in cart)
 
-        return render(request, 'sales/partials/cart_items.html', {
-            'cart': cart,
-            'cart_total': cart_total,
-        })
+        return render(
+            request,
+            'sales/partials/cart_items.html',
+            {
+                'cart': cart,
+                'cart_total': cart_total,
+            },
+        )
 
     return HttpResponse(status=400)
 
@@ -143,10 +157,14 @@ def cart_update(request):
 
         cart_total = sum(Decimal(item['total']) for item in cart)
 
-        return render(request, 'sales/partials/cart_items.html', {
-            'cart': cart,
-            'cart_total': cart_total,
-        })
+        return render(
+            request,
+            'sales/partials/cart_items.html',
+            {
+                'cart': cart,
+                'cart_total': cart_total,
+            },
+        )
 
     return HttpResponse(status=400)
 
@@ -157,10 +175,14 @@ def cart_clear(request):
         request.session['cart'] = []
         request.session.modified = True
 
-        return render(request, 'sales/partials/cart_items.html', {
-            'cart': [],
-            'cart_total': Decimal('0.00'),
-        })
+        return render(
+            request,
+            'sales/partials/cart_items.html',
+            {
+                'cart': [],
+                'cart_total': Decimal('0.00'),
+            },
+        )
 
     return HttpResponse(status=400)
 
@@ -186,11 +208,13 @@ def sale_complete(request):
         items_data = []
         for item in cart:
             product = Product.objects.get(pk=item['product_id'])
-            items_data.append({
-                'product': product,
-                'quantity': item['quantity'],
-                'unit_price': Decimal(item['unit_price']),
-            })
+            items_data.append(
+                {
+                    'product': product,
+                    'quantity': item['quantity'],
+                    'unit_price': Decimal(item['unit_price']),
+                }
+            )
 
         try:
             sale = SalesService.create_sale(client, warehouse, items_data)

@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Lint, Format & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up environment file
+        run: cp .env.example .env
+
+      - name: Build web container
+        run: docker compose build web
+
+      - name: Run CI checks via bin/test
+        run: bash bin/test

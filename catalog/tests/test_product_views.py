@@ -25,8 +25,8 @@ class TestProductViews:
         assert response.status_code == 200
         assert 'products' in response.context
         assert setup_data['product'] in response.context['products']
-        # Verifica se usa template v2
-        assert 'catalog/product_list_v2.html' in [t.name for t in response.templates]
+        # Verifica se usa template consolidado
+        assert 'catalog/product_list.html' in [t.name for t in response.templates]
 
     def test_product_create_view_post_valid_data(self, client, setup_data):
         url = reverse('catalog:product_create')

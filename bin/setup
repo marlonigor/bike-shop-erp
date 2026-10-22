@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Setting up Bike Shop ERP environment..."
+
+if [ ! -f .env ]; then
+  echo "Creating .env from .env.example..."
+  cp .env.example .env
+fi
+
+echo "Building web container..."
+docker-compose build web
+
+echo "Starting database service..."
+docker-compose up -d db
+
+echo "Running migrations..."
+docker-compose run --rm web python manage.py migrate
+
+echo "Setup completed successfully."

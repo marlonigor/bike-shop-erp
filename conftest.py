@@ -57,3 +57,23 @@ def product_secondary(db, category):
         cost=Decimal('15.00'),
         price=Decimal('25.00'),
     )
+
+
+@pytest.fixture
+def customer(db):
+    """Cria um cliente ativo para testes."""
+    from customers.models import Customer
+
+    return Customer.objects.create(
+        name='Cliente Padrão Teste',
+        email='cliente@exemplo.com',
+        phone='11987654321',
+        document='12345678901',
+        active=True,
+    )
+
+
+@pytest.fixture
+def client_db(customer):
+    """Alias retrocompativel para testes legados que usavam client_db."""
+    return customer

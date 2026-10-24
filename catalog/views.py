@@ -100,7 +100,7 @@ def _build_product_metrics(product: Product) -> dict[str, Any]:
     stock_by_warehouse = list(Stock.objects.filter(product=product).select_related('warehouse'))
     sales_history = list(
         SaleItem.objects.filter(product=product)
-        .select_related('sale', 'sale__client')
+        .select_related('sale', 'sale__customer')
         .order_by('-created_at')[:10]
     )
 

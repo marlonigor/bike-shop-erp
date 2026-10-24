@@ -2,11 +2,12 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Sum, functions
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
 
-def dashboard(request):
+def dashboard(request: HttpRequest) -> HttpResponse:
     """Dashboard principal com resumo de vendas e estoque."""
     from catalog.models import Product
     from sales.models import Sale
@@ -26,7 +27,7 @@ def dashboard(request):
     # Últimas vendas
     ultimas_vendas = (
         Sale.objects.filter(status=Sale.Status.COMPLETED)
-        .select_related('client')
+        .select_related('customer')
         .order_by('-created_at')[:5]
     )
 

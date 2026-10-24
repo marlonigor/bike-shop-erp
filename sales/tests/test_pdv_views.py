@@ -3,10 +3,15 @@ from django.urls import reverse
 
 
 @pytest.fixture
-def client_db(db):
-    from core.models import Client
+def customer_db(db):
+    from customers.models import Customer
 
-    return Client.objects.create(name='Cliente Teste PDV', document='99988877766')
+    return Customer.objects.create(name='Cliente Teste PDV', document='99988877766')
+
+
+@pytest.fixture
+def client_db(customer_db):
+    return customer_db
 
 
 @pytest.mark.django_db

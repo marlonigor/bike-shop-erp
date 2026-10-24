@@ -146,7 +146,7 @@
                     {% for item in sales_history %}
                     <tr>
                         <td>{{ item.created_at|date:"d/m/Y" }}</td>
-                        <td>{{ item.sale.client.name|truncatechars:20 }}</td>
+                        <td>{{ item.sale.customer.name|truncatechars:20 }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>R$ {{ item.total_price|floatformat:2 }}</td>
                     </tr>

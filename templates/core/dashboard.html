@@ -82,7 +82,7 @@
                     {% for venda in ultimas_vendas %}
                     <tr>
                         <td><code>{{ venda.id|truncatechars:8 }}</code></td>
-                        <td>{{ venda.client.name|default:"—" }}</td>
+                        <td>{{ venda.customer.name|default:"—" }}</td>
                         <td class="text-right">R$ {{ venda.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% endfor %}

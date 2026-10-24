@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
-from core.models import Client
+from customers.models import Customer
 from sales.models import Sale, SaleItem
 from stock.models import StockMovement, Warehouse
 from stock.services import StockService
@@ -20,7 +20,7 @@ class SalesService:
     @staticmethod
     @transaction.atomic
     def create_sale(
-        client: Client, warehouse: Warehouse, items_data: list[dict], notes: str = ''
+        customer: Customer, warehouse: Warehouse, items_data: list[dict], notes: str = ''
     ) -> Sale:
         """
         Cria uma venda e realiza a baixa de estoque para cada item.
@@ -33,7 +33,7 @@ class SalesService:
         """
         # 1. Criar o cabeçalho da venda
         sale = Sale.objects.create(
-            client=client, warehouse=warehouse, notes=notes, status=Sale.Status.COMPLETED
+            customer=customer, warehouse=warehouse, notes=notes, status=Sale.Status.COMPLETED
         )
 
         total_sale_amount = Decimal('0.00')

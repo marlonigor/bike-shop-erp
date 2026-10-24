@@ -3,15 +3,20 @@ from decimal import Decimal
 import pytest
 
 from core.exceptions import InsufficientStockError
-from core.models import Client
+from customers.models import Customer
 from sales.models import Sale
 from sales.services import SalesService
 from stock.services import StockService
 
 
 @pytest.fixture
-def client(db):
-    return Client.objects.create(name='João Silva', document='12345678901')
+def customer(db):
+    return Customer.objects.create(name='João Silva', document='12345678901')
+
+
+@pytest.fixture
+def client(customer):
+    return customer
 
 
 @pytest.mark.django_db

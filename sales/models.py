@@ -1,21 +1,22 @@
 from django.db import models
 
 from catalog.models import Product
-from core.models import Client, ModelBase
+from core.models import ModelBase
+from customers.models import Customer
 from stock.models import Warehouse
 
 
 class Sale(ModelBase):
     """
-    Representa o cabeçalho de uma venda.
+    Representa o cabecalho de uma venda realizada no PDV ou balcao.
     """
 
     class Status(models.TextChoices):
         COMPLETED = 'COMPLETED', 'Concluída'
         CANCELLED = 'CANCELLED', 'Cancelada'
 
-    client = models.ForeignKey(
-        Client, on_delete=models.PROTECT, related_name='sales', verbose_name='Cliente'
+    customer = models.ForeignKey(
+        Customer, on_delete=models.PROTECT, related_name='sales', verbose_name='Cliente'
     )
     warehouse = models.ForeignKey(
         Warehouse, on_delete=models.PROTECT, related_name='sales', verbose_name='Depósito de Origem'
@@ -33,8 +34,13 @@ class Sale(ModelBase):
         verbose_name_plural = 'Vendas'
         ordering = ['-created_at']
 
-    def __str__(self):
-        return f'Venda {self.id} - {self.client.name}'
+    def __str__(self) -> str:
+        return f'Venda {self.id} - {self.customer.name}'
+
+    @property
+    def client(self) -> Customer:
+        """Alias de compatibilidade para manter integridade com codigo legado."""
+        return self.customer
 
 
 class SaleItem(ModelBase):

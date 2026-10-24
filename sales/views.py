@@ -1,10 +1,10 @@
 from decimal import Decimal
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from catalog.models import Product
-from core.models import Client
+from customers.models import Customer
 from stock.models import Warehouse
 from stock.services import StockService
 
@@ -18,16 +18,17 @@ def _cart_context(request):
     return cart, cart_total
 
 
-def pdv(request):
+def pdv(request: HttpRequest) -> HttpResponse:
     """Tela principal do PDV."""
     warehouses = Warehouse.objects.all()
-    clients = Client.objects.all()
+    clients = Customer.objects.filter(active=True)
 
     cart, cart_total = _cart_context(request)
 
     context = {
         'warehouses': warehouses,
         'clients': clients,
+        'customers': clients,
         'cart': cart,
         'cart_total': cart_total,
     }
@@ -187,44 +188,45 @@ def cart_clear(request):
     return HttpResponse(status=400)
 
 
-def sale_complete(request):
+def sale_complete(request: HttpRequest) -> HttpResponse:
     """Finaliza a venda."""
-    if request.method == 'POST':
-        cart = request.session.get('cart', [])
+    if request.method != 'POST':
+        return HttpResponse(status=400)
 
-        if not cart:
-            return HttpResponse('Carrinho vazio', status=400)
+    cart = request.session.get('cart', [])
+    if not cart:
+        return HttpResponse('Carrinho vazio', status=400)
 
-        client_id = request.POST.get('client_id')
-        warehouse_id = request.POST.get('warehouse_id')
+    customer_id = request.POST.get('customer_id') or request.POST.get('client_id')
+    warehouse_id = request.POST.get('warehouse_id')
 
-        if not client_id or not warehouse_id:
-            return HttpResponse('Selecione cliente e depósito', status=400)
+    if not customer_id or not warehouse_id:
+        return HttpResponse('Selecione cliente e depósito', status=400)
 
-        client = get_object_or_404(Client, pk=client_id)
-        warehouse = get_object_or_404(Warehouse, pk=warehouse_id)
+    customer = get_object_or_404(Customer, pk=customer_id)
+    warehouse = get_object_or_404(Warehouse, pk=warehouse_id)
 
-        # Montar items_data
-        items_data = []
-        for item in cart:
-            product = Product.objects.get(pk=item['product_id'])
-            items_data.append(
-                {
-                    'product': product,
-                    'quantity': item['quantity'],
-                    'unit_price': Decimal(item['unit_price']),
-                }
-            )
+    # Montar items_data
+    items_data = []
+    for item in cart:
+        product = Product.objects.get(pk=item['product_id'])
+        items_data.append(
+            {
+                'product': product,
+                'quantity': item['quantity'],
+                'unit_price': Decimal(item['unit_price']),
+            }
+        )
 
-        try:
-            sale = SalesService.create_sale(client, warehouse, items_data)
+    try:
+        sale = SalesService.create_sale(
+            customer=customer, warehouse=warehouse, items_data=items_data
+        )
 
-            # Limpar carrinho
-            request.session['cart'] = []
-            request.session.modified = True
+        # Limpar carrinho
+        request.session['cart'] = []
+        request.session.modified = True
 
-            return render(request, 'sales/partials/sale_success.html', {'sale': sale})
-        except Exception as e:
-            return HttpResponse(f'Erro: {str(e)}', status=400)
-
-    return HttpResponse(status=400)
+        return render(request, 'sales/partials/sale_success.html', {'sale': sale})
+    except Exception as e:
+        return HttpResponse(f'Erro: {str(e)}', status=400)

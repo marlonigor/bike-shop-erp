@@ -1,19 +1,19 @@
 import pytest
 from django.urls import reverse
 
-from core.models import Client
+from customers.models import Customer
 from sales.models import Sale, SaleItem
 from stock.services import StockService
 
 
 @pytest.fixture
-def client_db(db):
-    return Client.objects.create(name='Cliente Teste E2E', document='12345678901')
+def customer_db(db):
+    return Customer.objects.create(name='Cliente Teste E2E', document='12345678901')
 
 
 @pytest.mark.django_db
 class TestSaleIntegration:
-    def test_complete_sale_flow_e2e(self, client, client_db, warehouse, product):
+    def test_complete_sale_flow_e2e(self, client, customer_db, warehouse, product):
         """
         Testa o fluxo completo de uma venda via PDV:
         1. Adição ao carrinho via POST
@@ -38,7 +38,7 @@ class TestSaleIntegration:
         # 3. Finalizar a venda
         url_complete = reverse('sales:sale_complete')
         response_complete = client.post(
-            url_complete, {'client_id': str(client_db.id), 'warehouse_id': str(warehouse.id)}
+            url_complete, {'customer_id': str(customer_db.id), 'warehouse_id': str(warehouse.id)}
         )
         assert response_complete.status_code == 200
 
@@ -46,7 +46,8 @@ class TestSaleIntegration:
         # Venda criada?
         sale = Sale.objects.first()
         assert sale is not None
-        assert sale.client == client_db
+        assert sale.customer == customer_db
+        assert sale.client == customer_db
         assert sale.total_amount == product.price * 2
         assert sale.status == Sale.Status.COMPLETED
 
@@ -61,7 +62,7 @@ class TestSaleIntegration:
         # Carrinho limpo?
         assert client.session.get('cart') == []
 
-    def test_sale_with_insufficient_stock_fails(self, client, client_db, warehouse, product):
+    def test_sale_with_insufficient_stock_fails(self, client, customer_db, warehouse, product):
         """
         Testa que a venda falha se não houver estoque suficiente no momento da finalização.
         """
@@ -74,7 +75,7 @@ class TestSaleIntegration:
         # 3. Finalizar a venda
         response = client.post(
             reverse('sales:sale_complete'),
-            {'client_id': str(client_db.id), 'warehouse_id': str(warehouse.id)},
+            {'customer_id': str(customer_db.id), 'warehouse_id': str(warehouse.id)},
         )
 
         # 4. Validar erro (HttpResponse 400 conforme views.py)

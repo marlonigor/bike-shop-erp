@@ -123,11 +123,27 @@
     <!-- Toast Script -->
     <script>
         document.body.addEventListener('showToast', function (evt) {
+            const detail = evt.detail || {};
+            const message = typeof detail === 'string' ? detail : (detail.message || 'Operacao realizada');
+            const type = detail.type || 'success';
             const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = evt.detail.message;
+            toast.className = 'toast toast-' + type;
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = message;
+            toast.appendChild(textSpan);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'toast-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = () => toast.remove();
+            toast.appendChild(closeBtn);
+
             document.getElementById('toast-container').appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
+            setTimeout(() => {
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         });
     </script>
 

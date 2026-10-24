@@ -62,10 +62,36 @@ class TestCustomerViews:
         customer.refresh_from_db()
         assert customer.name == 'João da Silva Editado'
 
+    def test_customer_create_pdv_source_htmx_returns_option(self, client):
+        url = reverse('customers:customer_create') + '?source=pdv'
+        data = {
+            'name': 'Carlos PDV',
+            'phone': '11977777777',
+            'active': True,
+        }
+        response = client.post(url, data, headers={'HX-Request': 'true'})
+        assert response.status_code == 200
+        assert 'Carlos PDV' in response.content.decode()
+        assert 'customerCreated' in response.headers['HX-Trigger']
+        assert Customer.objects.filter(name='Carlos PDV').exists()
+
+    def test_customer_list_view_htmx_returns_partial(self, client, customer):
+        url = reverse('customers:customer_list')
+        response = client.get(url, headers={'HX-Request': 'true'})
+        assert response.status_code == 200
+        assert 'customers/partials/customer_table.html' in [t.name for t in response.templates]
+
     def test_customer_delete_view_removes_data(self, client, customer):
         url = reverse('customers:customer_delete', args=[customer.id])
 
         response = client.post(url)
         assert response.status_code == 302
 
+        assert not Customer.objects.filter(id=customer.id).exists()
+
+    def test_customer_delete_view_htmx_returns_204(self, client, customer):
+        url = reverse('customers:customer_delete', args=[customer.id])
+        response = client.post(url, headers={'HX-Request': 'true'})
+        assert response.status_code == 204
+        assert response.headers['HX-Trigger'] == 'customerListChanged'
         assert not Customer.objects.filter(id=customer.id).exists()

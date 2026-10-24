@@ -8,6 +8,7 @@
     warehouseId: '',
     clientId: '',
     showConfirm: false,
+    showCustomerModal: false,
     get canFinalize() {
         return this.warehouseId && this.clientId && document.querySelectorAll('.cart-table tbody tr').length > 0;
     }
@@ -32,12 +33,17 @@
 
         <div class="form-group">
             <label>Cliente</label>
-            <select name="client_id" id="client-select" x-model="clientId" required>
-                <option value="">Selecione o cliente...</option>
-                {% for client in clients %}
-                <option value="{{ client.id }}">{{ client.name }}</option>
-                {% endfor %}
-            </select>
+            <div class="field-with-action">
+                <select name="client_id" id="client-select" x-model="clientId" required>
+                    <option value="">Selecione o cliente...</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-sm btn-secondary" @click="showCustomerModal = true" title="Cadastrar Novo Cliente">
+                    + Novo
+                </button>
+            </div>
         </div>
     </div>
 
@@ -136,15 +142,66 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Rapido: Novo Cliente -->
+    <div class="modal-overlay" x-show="showCustomerModal" x-cloak
+        x-transition:enter="modal-enter" x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end"
+        x-transition:leave="modal-leave" x-transition:leave-start="modal-leave-start" x-transition:leave-end="modal-leave-end"
+        @click.self="showCustomerModal = false" @keydown.escape.window="showCustomerModal = false">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cadastrar Novo Cliente</h3>
+            </div>
+            <form hx-post="{% url 'customers:customer_create' %}?source=pdv"
+                hx-target="#client-select" hx-swap="beforeend"
+                @htmx:after-request="showCustomerModal = false; $el.reset()">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group" style="margin-bottom: var(--space-md);">
+                        <label>Nome Completo</label>
+                        <input type="text" name="name" required placeholder="Nome do cliente">
+                    </div>
+                    <div class="form-group" style="margin-bottom: var(--space-md);">
+                        <label>Telefone</label>
+                        <input type="text" name="phone" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="form-group" style="margin-bottom: var(--space-md);">
+                        <label>CPF/CNPJ</label>
+                        <input type="text" name="document" placeholder="Apenas números">
+                    </div>
+                    <input type="hidden" name="active" value="on">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" @click="showCustomerModal = false">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Salvar e Selecionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
-<!-- Atalho de teclado: F2 foca na busca -->
+<!-- Atalhos de teclado e listeners -->
 <script>
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F2') {
             e.preventDefault();
             const input = document.getElementById('search-input');
             if (input) input.focus();
+        }
+    });
+
+    document.body.addEventListener('customerCreated', function (e) {
+        if (e.detail && e.detail.id) {
+            const select = document.getElementById('client-select');
+            if (select) {
+                select.value = e.detail.id;
+                select.dispatchEvent(new Event('change'));
+            }
         }
     });
 </script>

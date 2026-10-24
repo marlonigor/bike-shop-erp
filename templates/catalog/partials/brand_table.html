@@ -15,6 +15,7 @@
             <td class="text-center actions">
                 <a href="{% url 'catalog:brand_edit' brand.pk %}" class="btn btn-sm btn-secondary">Editar</a>
                 <button class="btn btn-sm btn-danger" hx-post="{% url 'catalog:brand_delete' brand.pk %}"
+                    hx-target="closest tr" hx-swap="outerHTML swap:300ms"
                     hx-confirm="Deseja realmente excluir '{{ brand.name }}'?">
                     Excluir
                 </button>

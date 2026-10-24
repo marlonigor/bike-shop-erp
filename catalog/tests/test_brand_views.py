@@ -37,3 +37,17 @@ class TestBrandViews:
         response = client.post(url)
         assert response.status_code == 302
         assert not Brand.objects.filter(id=brand.id).exists()
+
+    def test_brand_list_view_htmx_returns_partial(self, client):
+        url = reverse('catalog:brand_list')
+        response = client.get(url, headers={'HX-Request': 'true'})
+        assert response.status_code == 200
+        assert 'catalog/partials/brand_table.html' in [t.name for t in response.templates]
+
+    def test_brand_delete_view_htmx_returns_204(self, client):
+        brand = Brand.objects.create(name='Marca HTMX')
+        url = reverse('catalog:brand_delete', args=[brand.id])
+        response = client.post(url, headers={'HX-Request': 'true'})
+        assert response.status_code == 204
+        assert response.headers['HX-Trigger'] == 'brandListChanged'
+        assert not Brand.objects.filter(id=brand.id).exists()

@@ -53,7 +53,18 @@ class TestCategoryViews:
         response = client.post(url)
         assert response.status_code == 302  # Redirect após delete (ou 204 se for HTMX)
 
-        # Se for HTMX request no teste, precisaria header HX-Request.
-        # A view implementada suporta both. Testando fluxo padrão.
+        assert not Category.objects.filter(id=category.id).exists()
 
+    def test_category_list_view_htmx_returns_partial(self, client):
+        url = reverse('catalog:category_list')
+        response = client.get(url, headers={'HX-Request': 'true'})
+        assert response.status_code == 200
+        assert 'catalog/partials/category_table.html' in [t.name for t in response.templates]
+
+    def test_category_delete_view_htmx_returns_204(self, client):
+        category = Category.objects.create(name='Categoria HTMX', type=Category.Type.PRODUCT)
+        url = reverse('catalog:category_delete', args=[category.id])
+        response = client.post(url, headers={'HX-Request': 'true'})
+        assert response.status_code == 204
+        assert response.headers['HX-Trigger'] == 'categoryListChanged'
         assert not Category.objects.filter(id=category.id).exists()

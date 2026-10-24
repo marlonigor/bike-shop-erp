@@ -11,80 +11,86 @@ from .forms import BrandForm, CategoryForm, ProductForm
 from .models import Brand, Category, Product
 
 
-def product_list(request: HttpRequest) -> HttpResponse:
-    """Lista todos os produtos ativos com filtros por categoria e busca textual."""
+def _hx_or_redirect(request: HttpRequest, trigger: str, redirect_to: str) -> HttpResponse:
+    """Retorna 204 com trigger de evento para HTMX ou redireciona a navegacao padrao."""
+    if request.headers.get('HX-Request'):
+        return HttpResponse(status=204, headers={'HX-Trigger': trigger})
+    return redirect(redirect_to)
+
+
+def _filter_products(
+    request: HttpRequest,
+) -> tuple[QuerySet[Product], list[Category], str | None, str]:
+    """Aplica filtros de categoria e busca textual na listagem de produtos."""
     products: QuerySet[Product] = Product.objects.select_related('category', 'brand').order_by(
         'name'
     )
     categories = list(Category.objects.all())
-
-    category_filter = request.GET.get('category')
-    if category_filter:
-        products = products.filter(category_id=category_filter)
-
+    cat_filter = request.GET.get('category')
+    if cat_filter:
+        products = products.filter(category_id=cat_filter)
     for cat in categories:
-        cat.is_selected = str(cat.id) == category_filter
-
-    search = request.GET.get('q')
+        cat.is_selected = str(cat.id) == cat_filter
+    search = request.GET.get('q') or ''
     if search:
         products = products.filter(name__icontains=search) | products.filter(sku__icontains=search)
+    return products, categories, cat_filter, search
 
+
+def product_list(request: HttpRequest) -> HttpResponse:
+    """Lista produtos ativos com suporte a filtros e renderizacao parcial HTMX."""
+    products, categories, cat_filter, search = _filter_products(request)
     context = {
         'products': products,
         'categories': categories,
-        'selected_category': category_filter,
-        'search': search or '',
+        'selected_category': cat_filter,
+        'search': search,
     }
-
-    if request.headers.get('HX-Request'):
-        return render(request, 'catalog/partials/product_table.html', context)
-    return render(request, 'catalog/product_list.html', context)
+    template = (
+        'catalog/partials/product_table.html'
+        if request.headers.get('HX-Request')
+        else 'catalog/product_list.html'
+    )
+    return render(request, template, context)
 
 
 def product_create(request: HttpRequest) -> HttpResponse:
     """Cria um novo produto via formulario padrao ou requisicao HTMX."""
-    if request.method == 'POST':
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
-            return redirect('catalog:product_list')
-    else:
-        form = ProductForm()
+    if request.method != 'POST':
+        return render(request, 'catalog/product_form.html', {'form': ProductForm()})
 
-    return render(request, 'catalog/product_form.html', {'form': form})
+    form = ProductForm(request.POST)
+    if not form.is_valid():
+        return render(request, 'catalog/product_form.html', {'form': form})
+
+    form.save()
+    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list')
 
 
 def product_edit(request: HttpRequest, pk: int) -> HttpResponse:
     """Atualiza dados cadastrais de um produto existente."""
     product = get_object_or_404(Product, pk=pk)
-
-    if request.method == 'POST':
-        form = ProductForm(request.POST, instance=product)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
-            return redirect('catalog:product_list')
-    else:
+    if request.method != 'POST':
         form = ProductForm(instance=product)
+        return render(request, 'catalog/product_form.html', {'product': product, 'form': form})
 
-    return render(request, 'catalog/product_form.html', {'product': product, 'form': form})
+    form = ProductForm(request.POST, instance=product)
+    if not form.is_valid():
+        return render(request, 'catalog/product_form.html', {'product': product, 'form': form})
+
+    form.save()
+    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list')
 
 
 def product_delete(request: HttpRequest, pk: int) -> HttpResponse:
     """Desativa logicamente um produto do catalogo."""
     product = get_object_or_404(Product, pk=pk)
+    if request.method != 'POST':
+        return render(request, 'catalog/product_confirm_delete.html', {'product': product})
 
-    if request.method == 'POST':
-        product.active = False
-        product.save()
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'productListChanged'})
-        return redirect('catalog:product_list')
-
-    return render(request, 'catalog/product_confirm_delete.html', {'product': product})
+    product.active = False
+    product.save()
+    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list')
 
 
 def _build_product_metrics(product: Product) -> dict[str, Any]:
@@ -97,18 +103,17 @@ def _build_product_metrics(product: Product) -> dict[str, Any]:
         if product.price > 0
         else Decimal('0.00')
     )
-    stock_by_warehouse = list(Stock.objects.filter(product=product).select_related('warehouse'))
+    stock_by_wh = list(Stock.objects.filter(product=product).select_related('warehouse'))
     sales_history = list(
         SaleItem.objects.filter(product=product)
         .select_related('sale', 'sale__customer')
         .order_by('-created_at')[:10]
     )
-
     return {
         'product': product,
         'margin': margin,
-        'stock_by_warehouse': stock_by_warehouse,
-        'total_stock': sum(s.quantity for s in stock_by_warehouse),
+        'stock_by_warehouse': stock_by_wh,
+        'total_stock': sum(s.quantity for s in stock_by_wh),
         'sales_history': sales_history,
         'total_sold': sum(item.quantity for item in sales_history),
         'total_revenue': sum(item.total_price for item in sales_history),
@@ -118,115 +123,102 @@ def _build_product_metrics(product: Product) -> dict[str, Any]:
 def product_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """Exibe indicadores consolidados e historico de movimentacao do produto."""
     product = get_object_or_404(Product.objects.select_related('category', 'brand'), pk=pk)
-    context = _build_product_metrics(product)
-    return render(request, 'catalog/product_detail.html', context)
-
-
-# ============================================
-# Categoria CRUD
-# ============================================
+    return render(request, 'catalog/product_detail.html', _build_product_metrics(product))
 
 
 def category_list(request: HttpRequest) -> HttpResponse:
-    """Lista todas as categorias cadastradas."""
-    return render(request, 'catalog/category_list.html', {'categories': Category.objects.all()})
+    """Lista todas as categorias com suporte a renderizacao parcial para HTMX."""
+    context = {'categories': Category.objects.all()}
+    template = (
+        'catalog/partials/category_table.html'
+        if request.headers.get('HX-Request')
+        else 'catalog/category_list.html'
+    )
+    return render(request, template, context)
 
 
 def category_create(request: HttpRequest) -> HttpResponse:
     """Cadastra uma nova categoria no sistema."""
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                return HttpResponse(status=204, headers={'HX-Trigger': 'categoryListChanged'})
-            return redirect('catalog:category_list')
-    else:
-        form = CategoryForm()
+    if request.method != 'POST':
+        return render(request, 'catalog/category_form.html', {'form': CategoryForm()})
 
-    return render(request, 'catalog/category_form.html', {'form': form})
+    form = CategoryForm(request.POST)
+    if not form.is_valid():
+        return render(request, 'catalog/category_form.html', {'form': form})
+
+    form.save()
+    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list')
 
 
 def category_edit(request: HttpRequest, pk: int) -> HttpResponse:
     """Edita uma categoria existente."""
     category = get_object_or_404(Category, pk=pk)
-
-    if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                return HttpResponse(status=204, headers={'HX-Trigger': 'categoryListChanged'})
-            return redirect('catalog:category_list')
-    else:
+    if request.method != 'POST':
         form = CategoryForm(instance=category)
+        return render(request, 'catalog/category_form.html', {'form': form, 'category': category})
 
-    return render(request, 'catalog/category_form.html', {'form': form, 'category': category})
+    form = CategoryForm(request.POST, instance=category)
+    if not form.is_valid():
+        return render(request, 'catalog/category_form.html', {'form': form, 'category': category})
+
+    form.save()
+    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list')
 
 
 def category_delete(request: HttpRequest, pk: int) -> HttpResponse:
     """Remove uma categoria do sistema."""
     category = get_object_or_404(Category, pk=pk)
+    if request.method != 'POST':
+        return render(request, 'catalog/category_confirm_delete.html', {'category': category})
 
-    if request.method == 'POST':
-        category.delete()
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'categoryListChanged'})
-        return redirect('catalog:category_list')
-
-    return render(request, 'catalog/category_confirm_delete.html', {'category': category})
-
-
-# ============================================
-# Marca CRUD
-# ============================================
+    category.delete()
+    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list')
 
 
 def brand_list(request: HttpRequest) -> HttpResponse:
-    """Lista todas as marcas cadastradas."""
-    return render(request, 'catalog/brand_list.html', {'brands': Brand.objects.all()})
+    """Lista todas as marcas cadastradas com suporte a HTMX."""
+    context = {'brands': Brand.objects.all()}
+    template = (
+        'catalog/partials/brand_table.html'
+        if request.headers.get('HX-Request')
+        else 'catalog/brand_list.html'
+    )
+    return render(request, template, context)
 
 
 def brand_create(request: HttpRequest) -> HttpResponse:
     """Cadastra uma nova marca."""
-    if request.method == 'POST':
-        form = BrandForm(request.POST)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                return HttpResponse(status=204, headers={'HX-Trigger': 'brandListChanged'})
-            return redirect('catalog:brand_list')
-    else:
-        form = BrandForm()
+    if request.method != 'POST':
+        return render(request, 'catalog/brand_form.html', {'form': BrandForm()})
 
-    return render(request, 'catalog/brand_form.html', {'form': form})
+    form = BrandForm(request.POST)
+    if not form.is_valid():
+        return render(request, 'catalog/brand_form.html', {'form': form})
+
+    form.save()
+    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list')
 
 
 def brand_edit(request: HttpRequest, pk: int) -> HttpResponse:
     """Edita dados cadastrais de uma marca."""
     brand = get_object_or_404(Brand, pk=pk)
-
-    if request.method == 'POST':
-        form = BrandForm(request.POST, instance=brand)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('HX-Request'):
-                return HttpResponse(status=204, headers={'HX-Trigger': 'brandListChanged'})
-            return redirect('catalog:brand_list')
-    else:
+    if request.method != 'POST':
         form = BrandForm(instance=brand)
+        return render(request, 'catalog/brand_form.html', {'form': form, 'brand': brand})
 
-    return render(request, 'catalog/brand_form.html', {'form': form, 'brand': brand})
+    form = BrandForm(request.POST, instance=brand)
+    if not form.is_valid():
+        return render(request, 'catalog/brand_form.html', {'form': form, 'brand': brand})
+
+    form.save()
+    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list')
 
 
 def brand_delete(request: HttpRequest, pk: int) -> HttpResponse:
     """Remove uma marca do sistema."""
     brand = get_object_or_404(Brand, pk=pk)
+    if request.method != 'POST':
+        return render(request, 'catalog/brand_confirm_delete.html', {'brand': brand})
 
-    if request.method == 'POST':
-        brand.delete()
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'brandListChanged'})
-        return redirect('catalog:brand_list')
-
-    return render(request, 'catalog/brand_confirm_delete.html', {'brand': brand})
+    brand.delete()
+    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list')

@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': config('DB_NAME', default='bikeshop'),
         'USER': config('DB_USER', default='bikeshopuser'),
         'PASSWORD': config('DB_PASSWORD', default='password123'),
-        'HOST': config('DB_HOST', default='db'),
+        'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='5432'),
     }
 }

@@ -21,7 +21,8 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 
-<body class="app-container" :class="{ 'sidebar-collapsed': !sidebarOpen }">
+<body class="app-container" :class="{ 'sidebar-collapsed': !sidebarOpen }"
+    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'open': sidebarOpen }">

@@ -146,6 +146,20 @@
             }, 3500);
         });
     </script>
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% for message in messages %}
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: {
+                    message: '{{ message|escapejs }}',
+                    type: '{{ message.tags|default:"success" }}'
+                }
+            }));
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
 
 </body>
 

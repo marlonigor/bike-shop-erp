@@ -15,7 +15,7 @@
     </div>
     {% endif %}
 
-    <form method="post" hx-post="{{ request.path }}" hx-target="body" hx-swap="none">
+    <form method="post">
         {% csrf_token %}
 
         <div class="form-group">

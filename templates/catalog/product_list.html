@@ -10,13 +10,18 @@
 {% block content %}
 <div class="card">
     <!-- Filtros -->
-    <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-lg);">
-        <input type="text" class="form-input" placeholder="Buscar por nome ou SKU..." name="q" value="{{ search }}"
-            hx-get="{% url 'catalog:product_list' %}" hx-trigger="keyup changed delay:300ms" hx-target="#product-table"
-            style="max-width: 300px;">
+    <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-lg); align-items: center;">
+        <div style="position: relative; max-width: 320px; width: 100%;">
+            <input type="text" class="form-input" placeholder="Buscar por nome ou SKU..." name="q" value="{{ search }}"
+                hx-get="{% url 'catalog:product_list' %}" hx-trigger="keyup changed delay:300ms" hx-target="#product-table"
+                hx-indicator="#catalog-search-indicator" style="width: 100%; padding-right: 36px;">
+            <div id="catalog-search-indicator" class="htmx-indicator" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            </div>
+        </div>
 
         <select class="form-input" name="category" hx-get="{% url 'catalog:product_list' %}" hx-trigger="change"
-            hx-target="#product-table" style="max-width: 200px;">
+            hx-target="#product-table" hx-indicator="#catalog-search-indicator" style="max-width: 200px;">
             <option value="">Todas as categorias</option>
             {% for cat in categories %}
             <option value="{{ cat.id }}" {% if cat.is_selected %}selected{% endif %}>

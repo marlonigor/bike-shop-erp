@@ -1,8 +1,8 @@
-"""Controladores web para gestao do catalogo de produtos, categorias e marcas."""
-
+import json
 from decimal import Decimal
 from typing import Any
 
+from django.contrib import messages
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,10 +11,17 @@ from .forms import BrandForm, CategoryForm, ProductForm
 from .models import Brand, Category, Product
 
 
-def _hx_or_redirect(request: HttpRequest, trigger: str, redirect_to: str) -> HttpResponse:
-    """Retorna 204 com trigger de evento para HTMX ou redireciona a navegacao padrao."""
+def _hx_or_redirect(
+    request: HttpRequest, trigger: str, redirect_to: str, message: str | None = None
+) -> HttpResponse:
+    """Retorna 204 com trigger para HTMX ou redireciona a navegacao padrao com mensagem."""
+    if message:
+        messages.success(request, message)
     if request.headers.get('HX-Request'):
-        return HttpResponse(status=204, headers={'HX-Trigger': trigger})
+        payload: dict[str, Any] = {trigger: True}
+        if message:
+            payload['showToast'] = {'message': message, 'type': 'success'}
+        return HttpResponse(status=204, headers={'HX-Trigger': json.dumps(payload)})
     return redirect(redirect_to)
 
 
@@ -63,8 +70,9 @@ def product_create(request: HttpRequest) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'catalog/product_form.html', {'form': form})
 
-    form.save()
-    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list')
+    product = form.save()
+    msg = f"Produto '{product.name}' cadastrado com sucesso!"
+    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list', message=msg)
 
 
 def product_edit(request: HttpRequest, pk: int) -> HttpResponse:
@@ -78,8 +86,9 @@ def product_edit(request: HttpRequest, pk: int) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'catalog/product_form.html', {'product': product, 'form': form})
 
-    form.save()
-    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list')
+    product = form.save()
+    msg = f"Produto '{product.name}' atualizado com sucesso!"
+    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list', message=msg)
 
 
 def product_delete(request: HttpRequest, pk: int) -> HttpResponse:
@@ -90,7 +99,8 @@ def product_delete(request: HttpRequest, pk: int) -> HttpResponse:
 
     product.active = False
     product.save()
-    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list')
+    msg = f"Produto '{product.name}' desativado com sucesso."
+    return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list', message=msg)
 
 
 def _build_product_metrics(product: Product) -> dict[str, Any]:
@@ -146,8 +156,9 @@ def category_create(request: HttpRequest) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'catalog/category_form.html', {'form': form})
 
-    form.save()
-    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list')
+    category = form.save()
+    msg = f"Categoria '{category.name}' cadastrada com sucesso!"
+    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
 
 
 def category_edit(request: HttpRequest, pk: int) -> HttpResponse:
@@ -161,8 +172,9 @@ def category_edit(request: HttpRequest, pk: int) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'catalog/category_form.html', {'form': form, 'category': category})
 
-    form.save()
-    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list')
+    category = form.save()
+    msg = f"Categoria '{category.name}' atualizada com sucesso!"
+    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
 
 
 def category_delete(request: HttpRequest, pk: int) -> HttpResponse:
@@ -172,7 +184,8 @@ def category_delete(request: HttpRequest, pk: int) -> HttpResponse:
         return render(request, 'catalog/category_confirm_delete.html', {'category': category})
 
     category.delete()
-    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list')
+    msg = f"Categoria '{category.name}' removida com sucesso."
+    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
 
 
 def brand_list(request: HttpRequest) -> HttpResponse:
@@ -195,8 +208,9 @@ def brand_create(request: HttpRequest) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'catalog/brand_form.html', {'form': form})
 
-    form.save()
-    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list')
+    brand = form.save()
+    msg = f"Marca '{brand.name}' cadastrada com sucesso!"
+    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)
 
 
 def brand_edit(request: HttpRequest, pk: int) -> HttpResponse:
@@ -210,8 +224,9 @@ def brand_edit(request: HttpRequest, pk: int) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'catalog/brand_form.html', {'form': form, 'brand': brand})
 
-    form.save()
-    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list')
+    brand = form.save()
+    msg = f"Marca '{brand.name}' atualizada com sucesso!"
+    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)
 
 
 def brand_delete(request: HttpRequest, pk: int) -> HttpResponse:
@@ -221,4 +236,5 @@ def brand_delete(request: HttpRequest, pk: int) -> HttpResponse:
         return render(request, 'catalog/brand_confirm_delete.html', {'brand': brand})
 
     brand.delete()
-    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list')
+    msg = f"Marca '{brand.name}' removida com sucesso."
+    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)

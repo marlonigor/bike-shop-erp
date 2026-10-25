@@ -2159,3 +2159,26 @@ select.form-control,
 .field-with-action select {
     flex: 1;
 }
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 150ms ease-in-out;
+    pointer-events: none;
+}
+
+.htmx-request.htmx-indicator,
+.htmx-request .htmx-indicator {
+    opacity: 1;
+}

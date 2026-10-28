@@ -1,5 +1,9 @@
 """Controladores web para gestao e movimentacao de estoque."""
 
+import json
+from typing import Any
+
+from django.contrib import messages
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,6 +14,20 @@ from core.exceptions import InsufficientStockError
 from .forms import StockAdjustmentForm
 from .models import Stock, StockMovement, Warehouse
 from .services import StockService
+
+
+def _hx_or_redirect(
+    request: HttpRequest, trigger: str, redirect_to: str, message: str | None = None
+) -> HttpResponse:
+    """Retorna 204 com trigger para HTMX ou redireciona a navegacao padrao com mensagem."""
+    if message:
+        messages.success(request, message)
+    if request.headers.get('HX-Request'):
+        payload: dict[str, Any] = {trigger: True}
+        if message:
+            payload['showToast'] = {'message': message, 'type': 'success'}
+        return HttpResponse(status=204, headers={'HX-Trigger': json.dumps(payload)})
+    return redirect(redirect_to)
 
 
 def _filter_stocks(
@@ -46,7 +64,9 @@ def stock_list(request: HttpRequest) -> HttpResponse:
     return render(request, template_name, context)
 
 
-def _execute_movement(request: HttpRequest) -> None:
+def _execute_movement(
+    request: HttpRequest,
+) -> tuple[Product, Warehouse, int, str]:
     """Executa adicao ou baixa de estoque a partir dos parametros da requisicao."""
     product = get_object_or_404(Product, pk=request.POST.get('product_id'))
     warehouse = get_object_or_404(Warehouse, pk=request.POST.get('warehouse_id'))
@@ -55,8 +75,9 @@ def _execute_movement(request: HttpRequest) -> None:
     reason = request.POST.get('reason', '')
     if movement_type == 'IN':
         StockService.add_stock(product, warehouse, quantity, reason=reason)
-        return
-    StockService.remove_stock(product, warehouse, quantity, reason=reason)
+    else:
+        StockService.remove_stock(product, warehouse, quantity, reason=reason)
+    return product, warehouse, quantity, movement_type
 
 
 def stock_movement(request: HttpRequest) -> HttpResponse:
@@ -68,12 +89,18 @@ def stock_movement(request: HttpRequest) -> HttpResponse:
         }
         return render(request, 'stock/stock_movement.html', context)
     try:
-        _execute_movement(request)
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'stockListChanged'})
-        return redirect('stock:stock_list')
+        product, _, quantity, movement_type = _execute_movement(request)
+        action_name = 'Entrada' if movement_type == 'IN' else 'Saída'
+        msg = f"{action_name} de {quantity} un do produto '{product.name}' registrada com sucesso!"
+        return _hx_or_redirect(request, 'stockListChanged', 'stock:stock_list', message=msg)
     except (InsufficientStockError, ValueError) as e:
-        return HttpResponse(f'Erro: {str(e)}', status=400)
+        messages.error(request, str(e))
+        context = {
+            'products': Product.objects.filter(active=True),
+            'warehouses': Warehouse.objects.all(),
+            'error': str(e),
+        }
+        return render(request, 'stock/stock_movement.html', context, status=400)
 
 
 def stock_adjust(request: HttpRequest) -> HttpResponse:
@@ -84,15 +111,16 @@ def stock_adjust(request: HttpRequest) -> HttpResponse:
     if not form.is_valid():
         return render(request, 'stock/stock_adjust.html', {'form': form})
     try:
+        product = form.cleaned_data['product']
+        new_quantity = form.cleaned_data['new_quantity']
         StockService.adjust_stock(
-            product=form.cleaned_data['product'],
+            product=product,
             warehouse=form.cleaned_data['warehouse'],
-            new_quantity=form.cleaned_data['new_quantity'],
+            new_quantity=new_quantity,
             reason=form.cleaned_data['reason'],
         )
-        if request.headers.get('HX-Request'):
-            return HttpResponse(status=204, headers={'HX-Trigger': 'stockListChanged'})
-        return redirect('stock:stock_list')
+        msg = f"Estoque de '{product.name}' ajustado para {new_quantity} un com sucesso!"
+        return _hx_or_redirect(request, 'stockListChanged', 'stock:stock_list', message=msg)
     except (InsufficientStockError, ValueError) as e:
         form.add_error(None, str(e))
         return render(request, 'stock/stock_adjust.html', {'form': form})

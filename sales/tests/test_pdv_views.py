@@ -157,3 +157,28 @@ class TestSaleCompleteValidation:
         )
         assert response.status_code == 400
         assert 'Selecione cliente' in response.content.decode()
+
+
+@pytest.mark.django_db
+class TestProductSearch:
+    def test_product_search_with_warehouse_id_returns_stock(self, client, product, warehouse):
+        """Busca com warehouse_id retorna o saldo correto em estoque."""
+        from stock.services import StockService
+
+        StockService.add_stock(product, warehouse, 7)
+
+        url = reverse('sales:product_search')
+        response = client.get(f'{url}?q={product.name}&warehouse_id={warehouse.id}')
+        assert response.status_code == 200
+        assert 'results' in response.context
+        assert len(response.context['results']) == 1
+        assert response.context['results'][0]['stock'] == 7
+        assert 'Estoque: 7' in response.content.decode()
+
+    def test_product_search_without_warehouse_returns_zero_stock(self, client, product):
+        """Busca sem depósito informado retorna saldo zero como fallback."""
+        url = reverse('sales:product_search')
+        response = client.get(f'{url}?q={product.name}')
+        assert response.status_code == 200
+        assert response.context['results'][0]['stock'] == 0
+        assert 'Sem estoque' in response.content.decode()

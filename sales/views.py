@@ -35,30 +35,25 @@ def pdv(request: HttpRequest) -> HttpResponse:
     return render(request, 'sales/pdv.html', context)
 
 
-def product_search(request):
+def product_search(request: HttpRequest) -> HttpResponse:
     """Busca produtos para adicionar ao carrinho (HTMX)."""
-    query = request.GET.get('q', '')
-    warehouse_id = request.GET.get('warehouse')
+    query = request.GET.get('q', '').strip()
+    warehouse_id = request.GET.get('warehouse_id') or request.GET.get('warehouse')
 
     products = Product.objects.filter(active=True)
-
     if query:
         products = products.filter(name__icontains=query) | products.filter(sku__icontains=query)
 
     products = products[:10]
+    warehouse = Warehouse.objects.filter(id=warehouse_id).first() if warehouse_id else None
 
-    # Adicionar info de estoque
-    results = []
-    for product in products:
-        stock = 0
-        if warehouse_id:
-            stock = StockService.get_balance(product, Warehouse.objects.get(id=warehouse_id))
-        results.append(
-            {
-                'product': product,
-                'stock': stock,
-            }
-        )
+    results = [
+        {
+            'product': product,
+            'stock': StockService.get_balance(product, warehouse) if warehouse else 0,
+        }
+        for product in products
+    ]
 
     return render(request, 'sales/partials/product_search_results.html', {'results': results})
 

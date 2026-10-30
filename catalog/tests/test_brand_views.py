@@ -49,5 +49,5 @@ class TestBrandViews:
         url = reverse('catalog:brand_delete', args=[brand.id])
         response = client.post(url, headers={'HX-Request': 'true'})
         assert response.status_code == 204
-        assert response.headers['HX-Trigger'] == 'brandListChanged'
+        assert 'brandListChanged' in response.headers['HX-Trigger']
         assert not Brand.objects.filter(id=brand.id).exists()

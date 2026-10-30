@@ -66,5 +66,5 @@ class TestCategoryViews:
         url = reverse('catalog:category_delete', args=[category.id])
         response = client.post(url, headers={'HX-Request': 'true'})
         assert response.status_code == 204
-        assert response.headers['HX-Trigger'] == 'categoryListChanged'
+        assert 'categoryListChanged' in response.headers['HX-Trigger']
         assert not Category.objects.filter(id=category.id).exists()

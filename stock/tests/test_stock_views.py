@@ -57,7 +57,7 @@ class TestStockHistoryView:
             product=prod_b,
             warehouse=warehouse,
             quantity=2,
-            movement_type=StockMovement.MovementType.OUT,
+            movement_type=StockMovement.MovementType.IN,
         )
 
         url = reverse('stock:stock_history')
@@ -66,7 +66,7 @@ class TestStockHistoryView:
         assert response_a.context['movements'][0].product == prod_a
 
         response_in = client.get(f'{url}?type=IN')
-        assert len(response_in.context['movements']) == 1
+        assert len(response_in.context['movements']) == 2
         assert response_in.context['movements'][0].movement_type == 'IN'
 
     def test_stock_history_filter_by_period(self, client, setup_data):

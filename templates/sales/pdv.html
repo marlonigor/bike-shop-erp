@@ -56,7 +56,8 @@
                 </div>
                 <div class="card-body">
                     <input type="text" name="q" placeholder="Digite o nome ou SKU... (Esc limpa)"
-                        hx-get="{% url 'sales:product_search' %}" hx-trigger="keyup changed delay:300ms"
+                        hx-get="{% url 'sales:product_search' %}"
+                        hx-trigger="keyup changed delay:300ms, change from:[name='warehouse_id']"
                         hx-target="#search-results" hx-include="[name='warehouse_id']" hx-indicator="#pdv-spinner"
                         :disabled="!warehouseId" x-init="$nextTick(() => { if(warehouseId) $el.focus() })"
                         @keydown.escape="$el.value = ''; document.getElementById('search-results').innerHTML = ''"

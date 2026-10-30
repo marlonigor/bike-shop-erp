@@ -1,0 +1,98 @@
+{% if movements %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Produto</th>
+            <th>Depósito</th>
+            <th>Tipo</th>
+            <th class="text-right">Qtd. Mudança</th>
+            <th>Motivo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for movement in movements %}
+        <tr>
+            <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
+            <td>
+                <span style="display: block; font-weight: 500;">{{ movement.product.sku }}</span>
+                <small style="color: var(--color-text-muted);">{{ movement.product.name }}</small>
+            </td>
+            <td>{{ movement.warehouse.name }}</td>
+            <td>
+                {% if movement.movement_type == 'IN' %}
+                <span class="badge badge-success">Entrada</span>
+                {% elif movement.movement_type == 'OUT' %}
+                <span class="badge badge-danger">Saida</span>
+                {% elif movement.movement_type == 'ADJUST' %}
+                <span class="badge badge-warning">Ajuste</span>
+                {% endif %}
+            </td>
+            <td class="text-right">
+                {% if movement.movement_type == 'OUT' %}-{% elif movement.movement_type == 'IN' %}+{% endif %}
+                {{ movement.quantity }}
+                {% if movement.new_quantity is not None %}
+                <br><small style="color: var(--color-text-muted);">Novo saldo: {{ movement.new_quantity }}</small>
+                {% endif %}
+            </td>
+            <td>
+                {{ movement.reason|default:"—" }}
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                    Ref: {{ movement.get_reference_type_display }}
+                    {% if movement.reference_id %}({{ movement.reference_id|truncatechars:8 }}){% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    <div class="pagination-info">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} registros)
+    </div>
+    <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+        <a href="{% querystring page=1 %}"
+           class="btn btn-sm btn-secondary"
+           hx-get="{% url 'stock:stock_history' %}{% querystring page=1 %}"
+           hx-target="#history-table"
+           hx-indicator="#history-filter-indicator">
+            Primeira
+        </a>
+        <a href="{% querystring page=page_obj.previous_page_number %}"
+           class="btn btn-sm btn-secondary"
+           hx-get="{% url 'stock:stock_history' %}{% querystring page=page_obj.previous_page_number %}"
+           hx-target="#history-table"
+           hx-indicator="#history-filter-indicator">
+            Anterior
+        </a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+        <a href="{% querystring page=page_obj.next_page_number %}"
+           class="btn btn-sm btn-secondary"
+           hx-get="{% url 'stock:stock_history' %}{% querystring page=page_obj.next_page_number %}"
+           hx-target="#history-table"
+           hx-indicator="#history-filter-indicator">
+            Próxima
+        </a>
+        <a href="{% querystring page=page_obj.paginator.num_pages %}"
+           class="btn btn-sm btn-secondary"
+           hx-get="{% url 'stock:stock_history' %}{% querystring page=page_obj.paginator.num_pages %}"
+           hx-target="#history-table"
+           hx-indicator="#history-filter-indicator">
+            Última
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <p>Nenhuma movimentação encontrada para os filtros selecionados.</p>
+</div>
+{% endif %}
+

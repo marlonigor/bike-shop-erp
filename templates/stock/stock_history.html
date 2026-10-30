@@ -1,66 +1,64 @@
 {% extends 'base.html' %}
 
 {% block title %}Histórico de Movimentações - Bike Shop ERP{% endblock %}
-{% block page_title %}Histórico de Movimentações (Últimos 50){% endblock %}
+{% block page_title %}Histórico de Movimentações{% endblock %}
 
 {% block header_actions %}
-<a href="{% url 'stock:stock_list' %}" class="btn">Voltar para Estoque</a>
+<a href="{% url 'stock:stock_list' %}" class="btn btn-secondary">Voltar para Estoque</a>
 {% endblock %}
 
 {% block content %}
-<div class="card" class="full-width-table-container">
-    {% if movements %}
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Produto</th>
-                <th>Depósito</th>
-                <th>Tipo</th>
-                <th class="text-right">Qtd. Mudança</th>
-                <th>Motivo</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for movement in movements %}
-            <tr>
-                <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
-                <td>
-                    <span style="display: block; font-weight: 500;">{{ movement.product.sku }}</span>
-                    <small style="color: var(--color-text-muted);">{{ movement.product.name }}</small>
-                </td>
-                <td>{{ movement.warehouse.name }}</td>
-                <td>
-                    {% if movement.movement_type == 'IN' %}
-                    <span class="badge badge-success">Entrada</span>
-                    {% elif movement.movement_type == 'OUT' %}
-                    <span class="badge badge-danger">Saida</span>
-                    {% elif movement.movement_type == 'ADJUST' %}
-                    <span class="badge badge-warning">Ajuste</span>
-                    {% endif %}
-                </td>
-                <td class="text-right">
-                    {% if movement.movement_type == 'OUT' %}-{% elif movement.movement_type == 'IN' %}+{% endif %}
-                    {{ movement.quantity }}
-                    {% if movement.new_quantity is not None %}
-                    <br><small style="color: var(--color-text-muted);">Novo saldo: {{ movement.new_quantity }}</small>
-                    {% endif %}
-                </td>
-                <td>
-                    {{ movement.reason }}
-                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">
-                        Ref: {{ movement.get_reference_type_display }}
-                        {% if movement.reference_id %}({{ movement.reference_id|truncatechars:8 }}){% endif %}
-                    </div>
-                </td>
-            </tr>
+<!-- Filtros -->
+<form method="get"
+      action="{% url 'stock:stock_history' %}"
+      class="filters-bar"
+      hx-get="{% url 'stock:stock_history' %}"
+      hx-target="#history-table"
+      hx-trigger="change delay:150ms"
+      hx-indicator="#history-filter-indicator">
+
+    <div class="filter-item">
+        <label for="filter-product">Produto</label>
+        <select id="filter-product" name="product">
+            <option value="">Todos os produtos</option>
+            {% for prod in products %}
+            <option value="{{ prod.id }}" {% if prod.is_selected %}selected{% endif %}>
+                {{ prod.name }} ({{ prod.sku }})
+            </option>
             {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-        <p>Nenhuma movimentação registrada.</p>
+        </select>
     </div>
-    {% endif %}
+
+    <div class="filter-item">
+        <label for="filter-type">Tipo</label>
+        <select id="filter-type" name="type">
+            <option value="">Todos os tipos</option>
+            {% for val, label in movement_types %}
+            <option value="{{ val }}" {% if selected_type == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-item">
+        <label for="filter-start-date">Data Inicial</label>
+        <input type="date" id="filter-start-date" name="start_date" value="{{ start_date }}">
+    </div>
+
+    <div class="filter-item">
+        <label for="filter-end-date">Data Final</label>
+        <input type="date" id="filter-end-date" name="end_date" value="{{ end_date }}">
+    </div>
+
+    <div class="filter-actions">
+        <a href="{% url 'stock:stock_history' %}" class="btn btn-sm btn-secondary">Limpar</a>
+        <div id="history-filter-indicator" class="htmx-indicator">
+            <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        </div>
+    </div>
+</form>
+
+<!-- Tabela e Paginacao -->
+<div id="history-table" class="card">
+    {% include 'stock/partials/history_table.html' %}
 </div>
 {% endblock %}

@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from django.contrib import messages
+from django.core.paginator import Page, Paginator
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -126,8 +127,8 @@ def stock_adjust(request: HttpRequest) -> HttpResponse:
         return render(request, 'stock/stock_adjust.html', {'form': form})
 
 
-def stock_history(request: HttpRequest) -> HttpResponse:
-    """Exibe o historico auditavel das ultimas 50 movimentacoes."""
+def _filter_movements(request: HttpRequest) -> QuerySet[StockMovement]:
+    """Filtra movimentacoes por produto, tipo e intervalo de datas."""
     movements = StockMovement.objects.select_related('product', 'warehouse').order_by('-created_at')
     product_id = request.GET.get('product')
     if product_id:
@@ -135,9 +136,48 @@ def stock_history(request: HttpRequest) -> HttpResponse:
     movement_type = request.GET.get('type')
     if movement_type:
         movements = movements.filter(movement_type=movement_type)
-    context = {
-        'movements': movements[:50],
-        'selected_product': product_id,
-        'selected_type': movement_type,
+    start_date = request.GET.get('start_date')
+    if start_date:
+        movements = movements.filter(created_at__date__gte=start_date)
+    end_date = request.GET.get('end_date')
+    if end_date:
+        movements = movements.filter(created_at__date__lte=end_date)
+    return movements
+
+
+def _paginate_movements(request: HttpRequest, movements: QuerySet[StockMovement]) -> Page:
+    """Aplica paginacao de 20 registros por pagina nas movimentacoes."""
+    paginator = Paginator(movements, 20)
+    page_number = request.GET.get('page', '1')
+    return paginator.get_page(page_number)
+
+
+def _build_history_context(request: HttpRequest, page_obj: Page) -> dict[str, object]:
+    """Monta o contexto para renderizacao do historico com filtros ativos."""
+    selected_prod = request.GET.get('product', '')
+    products = list(Product.objects.filter(active=True).order_by('name'))
+    for prod in products:
+        prod.is_selected = str(prod.id) == selected_prod
+    return {
+        'page_obj': page_obj,
+        'movements': page_obj.object_list,
+        'products': products,
+        'selected_product': selected_prod,
+        'selected_type': request.GET.get('type', ''),
+        'start_date': request.GET.get('start_date', ''),
+        'end_date': request.GET.get('end_date', ''),
+        'movement_types': StockMovement.MovementType.choices,
     }
-    return render(request, 'stock/stock_history.html', context)
+
+
+def stock_history(request: HttpRequest) -> HttpResponse:
+    """Exibe o historico auditavel com suporte a filtros por periodo e paginacao."""
+    movements = _filter_movements(request)
+    page_obj = _paginate_movements(request, movements)
+    context = _build_history_context(request, page_obj)
+    template_name = (
+        'stock/partials/history_table.html'
+        if request.headers.get('HX-Request')
+        else 'stock/stock_history.html'
+    )
+    return render(request, template_name, context)

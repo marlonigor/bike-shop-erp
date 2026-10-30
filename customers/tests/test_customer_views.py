@@ -43,7 +43,7 @@ class TestCustomerViews:
             'email': 'inválido',
         }
         response = client.post(url, data)
-        assert response.status_code == 200
+        assert response.status_code == 200  # Fica na página com erro
         assert 'form' in response.context
         assert response.context['form'].errors['name']
 
@@ -81,17 +81,46 @@ class TestCustomerViews:
         assert response.status_code == 200
         assert 'customers/partials/customer_table.html' in [t.name for t in response.templates]
 
-    def test_customer_delete_view_removes_data(self, client, customer):
+    def test_customer_delete_view_soft_deletes(self, client, customer):
         url = reverse('customers:customer_delete', args=[customer.id])
 
         response = client.post(url)
         assert response.status_code == 302
 
-        assert not Customer.objects.filter(id=customer.id).exists()
+        customer.refresh_from_db()
+        assert customer.active is False
 
     def test_customer_delete_view_htmx_returns_204(self, client, customer):
         url = reverse('customers:customer_delete', args=[customer.id])
         response = client.post(url, headers={'HX-Request': 'true'})
         assert response.status_code == 204
-        assert response.headers['HX-Trigger'] == 'customerListChanged'
-        assert not Customer.objects.filter(id=customer.id).exists()
+        assert 'customerListChanged' in response.headers['HX-Trigger']
+
+        customer.refresh_from_db()
+        assert customer.active is False
+
+    def test_customer_delete_with_associated_sales_soft_deletes_without_error(
+        self, client, customer, warehouse, product
+    ):
+        from sales.models import Sale, SaleItem
+
+        sale = Sale.objects.create(
+            customer=customer,
+            warehouse=warehouse,
+            total_amount=product.price,
+            status=Sale.Status.COMPLETED,
+        )
+        SaleItem.objects.create(
+            sale=sale,
+            product=product,
+            quantity=1,
+            unit_price=product.price,
+            total_price=product.price,
+        )
+
+        url = reverse('customers:customer_delete', args=[customer.id])
+        response = client.post(url)
+        assert response.status_code == 302
+
+        customer.refresh_from_db()
+        assert customer.active is False

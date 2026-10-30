@@ -33,14 +33,6 @@
         {% endfor %}
     </tbody>
 </table>
-
-<script>
-    document.getElementById('cart-total').textContent = 'R$ {{ cart_total|floatformat:2 }}';
-    document.getElementById('cart-total-header').textContent = 'R$ {{ cart_total|floatformat:2 }}';
-    // Atualizar total no modal de confirmacao
-    var ct = document.getElementById('confirm-total');
-    if (ct) ct.textContent = 'Total: R$ {{ cart_total|floatformat:2 }}';
-</script>
 {% else %}
 <div class="empty-cart">
     <div class="empty-cart-icon">
@@ -50,3 +42,13 @@
     <small>Busque produtos para adicionar</small>
 </div>
 {% endif %}
+
+<script>
+    var elTotal = document.getElementById('cart-total');
+    if (elTotal) elTotal.textContent = 'R$ {{ cart_total|floatformat:2 }}';
+    var elHeader = document.getElementById('cart-total-header');
+    if (elHeader) elHeader.textContent = 'R$ {{ cart_total|floatformat:2 }}';
+    var ct = document.getElementById('confirm-total');
+    if (ct) ct.textContent = 'Total: R$ {{ cart_total|floatformat:2 }}';
+    document.body.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: {{ cart|length }} } }));
+</script>

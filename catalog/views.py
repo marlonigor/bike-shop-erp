@@ -1,9 +1,10 @@
 import json
+import uuid
 from decimal import Decimal
 from typing import Any
 
 from django.contrib import messages
-from django.db.models import QuerySet
+from django.db.models import ProtectedError, QuerySet, Sum
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -75,7 +76,7 @@ def product_create(request: HttpRequest) -> HttpResponse:
     return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list', message=msg)
 
 
-def product_edit(request: HttpRequest, pk: int) -> HttpResponse:
+def product_edit(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Atualiza dados cadastrais de um produto existente."""
     product = get_object_or_404(Product, pk=pk)
     if request.method != 'POST':
@@ -91,7 +92,7 @@ def product_edit(request: HttpRequest, pk: int) -> HttpResponse:
     return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list', message=msg)
 
 
-def product_delete(request: HttpRequest, pk: int) -> HttpResponse:
+def product_delete(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Desativa logicamente um produto do catalogo."""
     product = get_object_or_404(Product, pk=pk)
     if request.method != 'POST':
@@ -119,18 +120,22 @@ def _build_product_metrics(product: Product) -> dict[str, Any]:
         .select_related('sale', 'sale__customer')
         .order_by('-created_at')[:10]
     )
+    sales_agg = SaleItem.objects.filter(product=product).aggregate(
+        total_sold=Sum('quantity'),
+        total_revenue=Sum('total_price'),
+    )
     return {
         'product': product,
         'margin': margin,
         'stock_by_warehouse': stock_by_wh,
         'total_stock': sum(s.quantity for s in stock_by_wh),
         'sales_history': sales_history,
-        'total_sold': sum(item.quantity for item in sales_history),
-        'total_revenue': sum(item.total_price for item in sales_history),
+        'total_sold': sales_agg['total_sold'] or 0,
+        'total_revenue': sales_agg['total_revenue'] or Decimal('0.00'),
     }
 
 
-def product_detail(request: HttpRequest, pk: int) -> HttpResponse:
+def product_detail(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Exibe indicadores consolidados e historico de movimentacao do produto."""
     product = get_object_or_404(Product.objects.select_related('category', 'brand'), pk=pk)
     return render(request, 'catalog/product_detail.html', _build_product_metrics(product))
@@ -161,7 +166,7 @@ def category_create(request: HttpRequest) -> HttpResponse:
     return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
 
 
-def category_edit(request: HttpRequest, pk: int) -> HttpResponse:
+def category_edit(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Edita uma categoria existente."""
     category = get_object_or_404(Category, pk=pk)
     if request.method != 'POST':
@@ -177,15 +182,23 @@ def category_edit(request: HttpRequest, pk: int) -> HttpResponse:
     return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
 
 
-def category_delete(request: HttpRequest, pk: int) -> HttpResponse:
+def category_delete(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Remove uma categoria do sistema."""
     category = get_object_or_404(Category, pk=pk)
     if request.method != 'POST':
         return render(request, 'catalog/category_confirm_delete.html', {'category': category})
 
-    category.delete()
-    msg = f"Categoria '{category.name}' removida com sucesso."
-    return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
+    try:
+        category.delete()
+        msg = f"Categoria '{category.name}' removida com sucesso."
+        return _hx_or_redirect(request, 'categoryListChanged', 'catalog:category_list', message=msg)
+    except ProtectedError:
+        error_msg = f"Não é possível excluir a categoria '{category.name}', pois existem produtos vinculados a ela."
+        if request.headers.get('HX-Request'):
+            payload = {'showToast': {'message': error_msg, 'type': 'danger'}}
+            return HttpResponse(status=400, headers={'HX-Trigger': json.dumps(payload)})
+        messages.error(request, error_msg)
+        return redirect('catalog:category_list')
 
 
 def brand_list(request: HttpRequest) -> HttpResponse:
@@ -213,7 +226,7 @@ def brand_create(request: HttpRequest) -> HttpResponse:
     return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)
 
 
-def brand_edit(request: HttpRequest, pk: int) -> HttpResponse:
+def brand_edit(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Edita dados cadastrais de uma marca."""
     brand = get_object_or_404(Brand, pk=pk)
     if request.method != 'POST':
@@ -229,12 +242,22 @@ def brand_edit(request: HttpRequest, pk: int) -> HttpResponse:
     return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)
 
 
-def brand_delete(request: HttpRequest, pk: int) -> HttpResponse:
+def brand_delete(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Remove uma marca do sistema."""
     brand = get_object_or_404(Brand, pk=pk)
     if request.method != 'POST':
         return render(request, 'catalog/brand_confirm_delete.html', {'brand': brand})
 
-    brand.delete()
-    msg = f"Marca '{brand.name}' removida com sucesso."
-    return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)
+    try:
+        brand.delete()
+        msg = f"Marca '{brand.name}' removida com sucesso."
+        return _hx_or_redirect(request, 'brandListChanged', 'catalog:brand_list', message=msg)
+    except ProtectedError:
+        error_msg = (
+            f"Não é possível excluir a marca '{brand.name}', pois existem registros dependentes."
+        )
+        if request.headers.get('HX-Request'):
+            payload = {'showToast': {'message': error_msg, 'type': 'danger'}}
+            return HttpResponse(status=400, headers={'HX-Trigger': json.dumps(payload)})
+        messages.error(request, error_msg)
+        return redirect('catalog:brand_list')

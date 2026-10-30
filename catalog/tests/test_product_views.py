@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
 
@@ -13,8 +15,8 @@ class TestProductViews:
         product = Product.objects.create(
             name='Caloi 10',
             sku='CAL-001',
-            price=1000.00,
-            cost=500.00,
+            price=Decimal('1000.00'),
+            cost=Decimal('500.00'),
             category=category,
             brand=brand,
         )
@@ -26,7 +28,6 @@ class TestProductViews:
         assert response.status_code == 200
         assert 'products' in response.context
         assert setup_data['product'] in response.context['products']
-        # Verifica se usa template consolidado
         assert 'catalog/product_list.html' in [t.name for t in response.templates]
 
     def test_product_create_view_post_valid_data(self, client, setup_data):
@@ -87,3 +88,33 @@ class TestProductViews:
 
         product.refresh_from_db()
         assert product.active is False  # Soft delete
+
+    def test_product_detail_view_computes_aggregated_metrics_across_all_sales(
+        self, client, setup_data, customer, warehouse
+    ):
+        from sales.models import Sale, SaleItem
+
+        product = setup_data['product']
+
+        # Criar 12 vendas com 2 unidades cada (total 24 un, R$ 24.000,00)
+        for _ in range(12):
+            sale = Sale.objects.create(
+                customer=customer,
+                warehouse=warehouse,
+                total_amount=Decimal('2000.00'),
+                status=Sale.Status.COMPLETED,
+            )
+            SaleItem.objects.create(
+                sale=sale,
+                product=product,
+                quantity=2,
+                unit_price=Decimal('1000.00'),
+                total_price=Decimal('2000.00'),
+            )
+
+        url = reverse('catalog:product_detail', args=[product.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert len(response.context['sales_history']) == 10
+        assert response.context['total_sold'] == 24
+        assert response.context['total_revenue'] == Decimal('24000.00')

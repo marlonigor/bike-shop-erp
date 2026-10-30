@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Categoria - Bike Shop ERP{% endblock %}
+{% block page_title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    <div class="confirm-delete">
+        <p class="warning-text">
+            Você está prestes a excluir a categoria:
+        </p>
+        <p class="product-name">{{ category.name }}</p>
+        <p class="product-sku">Tipo: {{ category.get_type_display }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'catalog:category_list' %}" class="btn">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

@@ -9,10 +9,11 @@
     clientId: '',
     showConfirm: false,
     showCustomerModal: false,
+    cartCount: {{ cart|length }},
     get canFinalize() {
-        return this.warehouseId && this.clientId && document.querySelectorAll('.cart-table tbody tr').length > 0;
+        return Boolean(this.warehouseId && this.clientId && this.cartCount > 0);
     }
-}">
+}" @cart-updated.window="cartCount = $event.detail.count">
     <!-- Loading Indicator Global -->
     <div class="htmx-indicator pdv-loading" id="pdv-spinner">
         <div class="spinner"></div>
@@ -101,7 +102,7 @@
 
                     <!-- Botao abre modal de confirmacao -->
                     <button type="button" class="btn btn-primary btn-lg btn-block"
-                        :disabled="!warehouseId || !clientId || {{ cart|length }} == 0" @click="showConfirm = true">
+                        :disabled="!canFinalize" @click="showConfirm = true">
                         Finalizar Venda
                     </button>
                 </div>

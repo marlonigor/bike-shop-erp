@@ -45,4 +45,5 @@
 <script>
     document.getElementById('cart-total').textContent = 'R$ 0.00';
     document.getElementById('cart-total-header').textContent = 'R$ 0.00';
+    document.body.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: 0 } }));
 </script>

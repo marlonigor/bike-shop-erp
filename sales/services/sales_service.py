@@ -23,7 +23,7 @@ class SalesService:
         customer: Customer, warehouse: Warehouse, items_data: list[dict], notes: str = ''
     ) -> Sale:
         """
-        Cria uma venda e realiza a baixa de estoque para cada item.
+        Cria uma venda e realiza a baixa de estoque para cada item físico.
 
         items_data deve ser uma lista de dicionários:
         [
@@ -57,17 +57,18 @@ class SalesService:
                 total_price=item_total,
             )
 
-            # Baixar estoque via StockService
+            # Baixar estoque via StockService apenas para produtos fisicos (nao servicos)
             # Se não houver estoque, o StockService levantará InsufficientStockError
             # e a transação atômica fará o rollback de toda a venda.
-            StockService.remove_stock(
-                product=product,
-                warehouse=warehouse,
-                quantity=quantity,
-                reference_type=StockMovement.ReferenceType.SALE,
-                reference_id=sale.id,
-                reason=f'Venda {sale.id}',
-            )
+            if not product.is_service:
+                StockService.remove_stock(
+                    product=product,
+                    warehouse=warehouse,
+                    quantity=quantity,
+                    reference_type=StockMovement.ReferenceType.SALE,
+                    reference_id=sale.id,
+                    reason=f'Venda {sale.id}',
+                )
 
         # 3. Atualizar o total da venda
         sale.total_amount = total_sale_amount

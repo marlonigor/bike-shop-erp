@@ -1,7 +1,9 @@
 """Controladores web para gestao cadastral de clientes."""
 
 import json
+import uuid
 
+from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -56,7 +58,7 @@ def customer_create(request: HttpRequest) -> HttpResponse:
     return HttpResponse(status=204, headers={'HX-Trigger': 'customerListChanged'})
 
 
-def customer_edit(request: HttpRequest, pk: int) -> HttpResponse:
+def customer_edit(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     """Edita dados cadastrais de um cliente."""
     customer = get_object_or_404(Customer, pk=pk)
     if request.method != 'POST':
@@ -69,17 +71,34 @@ def customer_edit(request: HttpRequest, pk: int) -> HttpResponse:
 
     form.save()
     if request.headers.get('HX-Request'):
-        return HttpResponse(status=204, headers={'HX-Trigger': 'customerListChanged'})
+        payload = {
+            'customerListChanged': True,
+            'showToast': {
+                'message': f"Cliente '{customer.name}' atualizado com sucesso.",
+                'type': 'success',
+            },
+        }
+        return HttpResponse(status=204, headers={'HX-Trigger': json.dumps(payload)})
+    messages.success(request, f"Cliente '{customer.name}' atualizado com sucesso.")
     return redirect('customers:customer_list')
 
 
-def customer_delete(request: HttpRequest, pk: int) -> HttpResponse:
-    """Remove ou desativa um cliente do sistema."""
+def customer_delete(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
+    """Desativa logicamente um cliente do sistema."""
     customer = get_object_or_404(Customer, pk=pk)
     if request.method != 'POST':
         return redirect('customers:customer_list')
 
-    customer.delete()
+    customer.active = False
+    customer.save()
     if request.headers.get('HX-Request'):
-        return HttpResponse(status=204, headers={'HX-Trigger': 'customerListChanged'})
+        payload = {
+            'customerListChanged': True,
+            'showToast': {
+                'message': f"Cliente '{customer.name}' desativado com sucesso.",
+                'type': 'success',
+            },
+        }
+        return HttpResponse(status=204, headers={'HX-Trigger': json.dumps(payload)})
+    messages.success(request, f"Cliente '{customer.name}' desativado com sucesso.")
     return redirect('customers:customer_list')

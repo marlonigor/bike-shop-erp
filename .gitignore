@@ -1,4 +1,4 @@
-﻿__pycache__/
+__pycache__/
 *.py[cod]
 *.class
 .env
@@ -8,3 +8,5 @@ db.sqlite3
 .DS_Store
 .idea/
 .vscode/
+.coverage
+htmlcov/

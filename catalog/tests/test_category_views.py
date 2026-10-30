@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from catalog.models import Category
+from catalog.models import Category, Product
 
 
 @pytest.mark.django_db
@@ -54,6 +54,37 @@ class TestCategoryViews:
         assert response.status_code == 302  # Redirect após delete (ou 204 se for HTMX)
 
         assert not Category.objects.filter(id=category.id).exists()
+
+    def test_category_delete_view_get_renders_confirm_template(self, client):
+        category = Category.objects.create(
+            name='Categoria Confirm Delete', type=Category.Type.PRODUCT
+        )
+        url = reverse('catalog:category_delete', args=[category.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'catalog/category_confirm_delete.html' in [t.name for t in response.templates]
+
+    def test_category_delete_with_associated_products_handles_protected_error(self, client):
+        category = Category.objects.create(name='Pecas Protegidas', type=Category.Type.PRODUCT)
+        Product.objects.create(
+            name='Camara Protegida',
+            sku='CAM-PROT-01',
+            price=25.00,
+            cost=10.00,
+            category=category,
+        )
+        url = reverse('catalog:category_delete', args=[category.id])
+
+        # Standard POST redirect com mensagem de erro
+        response = client.post(url)
+        assert response.status_code == 302
+        assert Category.objects.filter(id=category.id).exists()
+
+        # HTMX POST retorna 400 com toast de erro
+        response_htmx = client.post(url, headers={'HX-Request': 'true'})
+        assert response_htmx.status_code == 400
+        assert 'showToast' in response_htmx.headers['HX-Trigger']
+        assert Category.objects.filter(id=category.id).exists()
 
     def test_category_list_view_htmx_returns_partial(self, client):
         url = reverse('catalog:category_list')

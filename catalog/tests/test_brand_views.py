@@ -38,6 +38,13 @@ class TestBrandViews:
         assert response.status_code == 302
         assert not Brand.objects.filter(id=brand.id).exists()
 
+    def test_brand_delete_view_get_renders_confirm_template(self, client):
+        brand = Brand.objects.create(name='Marca Confirm Delete')
+        url = reverse('catalog:brand_delete', args=[brand.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'catalog/brand_confirm_delete.html' in [t.name for t in response.templates]
+
     def test_brand_list_view_htmx_returns_partial(self, client):
         url = reverse('catalog:brand_list')
         response = client.get(url, headers={'HX-Request': 'true'})

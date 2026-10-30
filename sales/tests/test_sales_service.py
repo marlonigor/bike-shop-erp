@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 
+from catalog.models import Category, Product
 from core.exceptions import InsufficientStockError
 from customers.models import Customer
 from sales.models import Sale
@@ -71,3 +72,24 @@ class TestSalesService:
         assert sale.total_amount == Decimal('200.00')  # (2*50) + (5*20)
         assert StockService.get_balance(product, warehouse) == 8
         assert StockService.get_balance(product_secondary, warehouse) == 15
+
+    def test_create_sale_service_item_does_not_deduct_or_require_stock(self, client, warehouse):
+        """Venda de servico nao deve baixar estoque nem exigir saldo."""
+        cat_service = Category.objects.create(name='Oficina', type=Category.Type.SERVICE)
+        service_prod = Product.objects.create(
+            name='Revisão Completa',
+            sku='REV-COMP',
+            price=Decimal('150.00'),
+            cost=Decimal('0.00'),
+            category=cat_service,
+            is_service=True,
+        )
+
+        items_data = [{'product': service_prod, 'quantity': 1, 'unit_price': Decimal('150.00')}]
+
+        sale = SalesService.create_sale(client, warehouse, items_data)
+
+        assert sale.status == Sale.Status.COMPLETED
+        assert sale.total_amount == Decimal('150.00')
+        assert sale.items.count() == 1
+        assert StockService.get_balance(service_prod, warehouse) == 0

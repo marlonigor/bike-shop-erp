@@ -6,19 +6,23 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
+from catalog.models import Product
+from sales.models import Sale
+from stock.models import Stock
+
 
 def dashboard(request: HttpRequest) -> HttpResponse:
     """Dashboard principal com resumo de vendas e estoque."""
-    from catalog.models import Product
-    from sales.models import Sale
-    from stock.models import Stock
-
     # Estatísticas
     total_vendas = Sale.objects.filter(status=Sale.Status.COMPLETED).aggregate(
         total=Sum('total_amount')
     )['total'] or Decimal('0.00')
 
-    vendas_hoje = Sale.objects.filter(status=Sale.Status.COMPLETED).count()
+    hoje = timezone.now().date()
+    vendas_hoje = Sale.objects.filter(
+        status=Sale.Status.COMPLETED,
+        created_at__date=hoje,
+    ).count()
 
     produtos_ativos = Product.objects.filter(active=True).count()
 

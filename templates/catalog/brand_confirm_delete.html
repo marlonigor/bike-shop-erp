@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Marca - Bike Shop ERP{% endblock %}
+{% block page_title %}Confirmar Exclusão{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    <div class="confirm-delete">
+        <p class="warning-text">
+            Você está prestes a excluir a marca:
+        </p>
+        <p class="product-name">{{ brand.name }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'catalog:brand_list' %}" class="btn">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

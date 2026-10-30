@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Suporte compativel com Docker Compose v2 (docker compose) e v1 (docker-compose)
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE="docker-compose"
+else
+  echo "Erro: Docker Compose nao encontrado." >&2
+  exit 1
+fi
+
 echo "Running linter and format check..."
-docker-compose run --rm web ruff check .
-docker-compose run --rm web ruff format --check .
+$COMPOSE run --rm web ruff check .
+$COMPOSE run --rm web ruff format --check .
 
 echo "Running test suite..."
-docker-compose run --rm web pytest "$@"
+$COMPOSE run --rm web pytest "$@"

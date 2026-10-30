@@ -1,6 +1,13 @@
 @echo off
 setlocal enabledelayedexpansion
 
+docker compose version >nul 2>&1
+if %errorlevel% equ 0 (
+    set COMPOSE=docker compose
+) else (
+    set COMPOSE=docker-compose
+)
+
 echo Setting up Bike Shop ERP environment...
 
 if not exist .env (
@@ -9,12 +16,12 @@ if not exist .env (
 )
 
 echo Building web container...
-docker-compose build web
+%COMPOSE% build web
 
 echo Starting database service...
-docker-compose up -d db
+%COMPOSE% up -d db
 
 echo Running migrations...
-docker-compose run --rm web python manage.py migrate
+%COMPOSE% run --rm web python manage.py migrate
 
 echo Setup completed successfully.

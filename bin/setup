@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Suporte compativel com Docker Compose v2 (docker compose) e v1 (docker-compose)
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE="docker-compose"
+else
+  echo "Erro: Docker Compose nao encontrado." >&2
+  exit 1
+fi
+
 echo "Setting up Bike Shop ERP environment..."
 
 if [ ! -f .env ]; then
@@ -9,12 +19,12 @@ if [ ! -f .env ]; then
 fi
 
 echo "Building web container..."
-docker-compose build web
+$COMPOSE build web
 
 echo "Starting database service..."
-docker-compose up -d db
+$COMPOSE up -d db
 
 echo "Running migrations..."
-docker-compose run --rm web python manage.py migrate
+$COMPOSE run --rm web python manage.py migrate
 
 echo "Setup completed successfully."

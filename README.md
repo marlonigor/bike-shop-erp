@@ -86,4 +86,5 @@ docker compose run --rm web python manage.py createsuperuser
 
 Detalhes sobre arquitetura de software, suite de testes automatizados e diretrizes de desenvolvimento estao documentados em:
 
+- [Arquitetura e Engenharia de Software](docs/architecture.md)
 - [Guia de Contribuicao e Testes](docs/contributing.md)

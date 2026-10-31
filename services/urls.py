@@ -20,3 +20,4 @@ urlpatterns = [
         name='service_order_change_status',
     ),
 ]
+

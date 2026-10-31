@@ -122,3 +122,4 @@ class TestServiceOrderViews:
         assert response.status_code == 302
         service_order.refresh_from_db()
         assert service_order.status == ServiceOrder.Status.APPROVED
+

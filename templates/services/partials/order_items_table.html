@@ -1,0 +1,82 @@
+<div id="items-container">
+    {% if items %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item / Serviço</th>
+                <th>Tipo</th>
+                <th class="text-center">Qtd</th>
+                <th class="text-right">Unitário</th>
+                <th class="text-right">Subtotal</th>
+                {% if order.status in 'DRAFT,APPROVED,IN_PROGRESS' %}
+                <th class="text-center" style="width: 50px;">Ação</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>
+                    <strong>{{ item.product.name }}</strong>
+                    <small style="color: var(--color-text-muted); display: block;">SKU: {{ item.product.sku }}</small>
+                    {% if item.notes %}
+                    <small style="color: var(--color-text-secondary); display: block; font-style: italic;">{{ item.notes }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.product.is_service %}
+                    <span class="badge">Mão de Obra</span>
+                    {% else %}
+                    <span class="badge badge-primary">Peça</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-right">R$ {{ item.unit_price|floatformat:2 }}</td>
+                <td class="text-right font-bold">R$ {{ item.total_price|floatformat:2 }}</td>
+                {% if order.status in 'DRAFT,APPROVED,IN_PROGRESS' %}
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger"
+                        hx-post="{% url 'services:service_order_remove_item' order.id item.id %}"
+                        hx-target="#items-container"
+                        hx-swap="outerHTML"
+                        title="Remover item">
+                        &times;
+                    </button>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state" style="padding: var(--space-lg); text-align: center;">
+        <p>Nenhuma peça ou serviço adicionado a esta OS ainda.</p>
+    </div>
+    {% endif %}
+
+    <!-- Resumo Financeiro da OS -->
+    <div style="display: flex; justify-content: flex-end; margin-top: var(--space-md); padding: var(--space-md); background: var(--color-bg-secondary); border-radius: var(--radius-md);">
+        <div style="display: flex; gap: var(--space-xl); text-align: right;">
+            <div>
+                <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Mão de Obra</span>
+                <p style="font-size: 1.1rem; font-weight: 600;">R$ {{ order.total_services|floatformat:2 }}</p>
+            </div>
+            <div>
+                <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Peças</span>
+                <p style="font-size: 1.1rem; font-weight: 600;">R$ {{ order.total_parts|floatformat:2 }}</p>
+            </div>
+            {% if order.discount > 0 %}
+            <div>
+                <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Desconto</span>
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--color-danger);">- R$ {{ order.discount|floatformat:2 }}</p>
+            </div>
+            {% endif %}
+            <div>
+                <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Total Geral</span>
+                <p style="font-size: 1.4rem; font-weight: 700; color: var(--color-success);" id="order-total-amount">
+                    R$ {{ order.total_amount|floatformat:2 }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

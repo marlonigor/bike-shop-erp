@@ -1,0 +1,56 @@
+{% if orders %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>OS</th>
+            <th>Cliente</th>
+            <th>Bicicleta</th>
+            <th>Status</th>
+            <th>Mecânico</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td><code>OS-{{ order.id|truncatechars:8 }}</code></td>
+            <td><strong>{{ order.customer.name }}</strong></td>
+            <td>
+                <span>{{ order.bike_description }}</span>
+                {% if order.bike_serial_number %}
+                <small style="color: var(--color-text-muted); display: block;">Nº: {{ order.bike_serial_number }}</small>
+                {% endif %}
+            </td>
+            <td>
+                {% if order.status == 'DRAFT' %}
+                <span class="badge">Orçamento</span>
+                {% elif order.status == 'APPROVED' %}
+                <span class="badge badge-primary">Aprovada</span>
+                {% elif order.status == 'IN_PROGRESS' %}
+                <span class="badge badge-warning">Em Manutenção</span>
+                {% elif order.status == 'COMPLETED' %}
+                <span class="badge badge-success">Concluída</span>
+                {% elif order.status == 'DELIVERED' %}
+                <span class="badge" style="background: rgba(102, 126, 234, 0.2); color: #8b9ff5;">Entregue</span>
+                {% elif order.status == 'CANCELLED' %}
+                <span class="badge badge-danger">Cancelada</span>
+                {% endif %}
+            </td>
+            <td>{% if order.mechanic %}{{ order.mechanic.get_full_name|default:order.mechanic.username }}{% else %}Não atribuído{% endif %}</td>
+            <td class="text-right font-bold">R$ {{ order.total_amount|floatformat:2 }}</td>
+            <td class="text-center actions">
+                <a href="{% url 'services:service_order_detail' order.pk %}" class="btn btn-sm btn-secondary">
+                    Abrir OS
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>Nenhuma ordem de serviço encontrada.</p>
+    <a href="{% url 'services:service_order_create' %}" class="btn btn-primary">Abrir primeira OS</a>
+</div>
+{% endif %}

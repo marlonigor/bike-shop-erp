@@ -12,6 +12,7 @@ urlpatterns = [
     path('', dashboard, name='dashboard'),
     path('produtos/', include('catalog.urls')),
     path('pdv/', include('sales.urls')),
+    path('oficina/', include('services.urls')),
     path('estoque/', include('stock.urls')),
     path('clientes/', include('customers.urls')),
 ]

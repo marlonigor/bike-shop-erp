@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Ordem de Serviço - Bike Shop ERP{% endblock %}
+{% block page_title %}Nova Ordem de Serviço{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'services:service_order_list' %}" class="btn btn-secondary">Voltar</a>
+{% endblock %}
+
+{% block content %}
+<div class="card form-card" style="max-width: 900px; margin: 0 auto;">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger" style="margin-bottom: var(--space-md);">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <!-- Bloco 1: Cliente & Depósito -->
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md); color: var(--color-primary-light); border-bottom: 1px solid var(--color-glass-border); padding-bottom: var(--space-xs);">
+            1. Identificação do Cliente e Origem
+        </h3>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-lg);">
+            <div class="form-group">
+                <label for="{{ form.customer.id_for_label }}">Cliente *</label>
+                {{ form.customer }}
+                {{ form.customer.errors }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.warehouse.id_for_label }}">Depósito de Peças *</label>
+                {{ form.warehouse }}
+                {{ form.warehouse.errors }}
+            </div>
+        </div>
+
+        <!-- Bloco 2: Bicicleta -->
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md); color: var(--color-primary-light); border-bottom: 1px solid var(--color-glass-border); padding-bottom: var(--space-xs);">
+            2. Dados da Bicicleta
+        </h3>
+        <div class="form-row" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">
+            <div class="form-group">
+                <label for="{{ form.bike_description.id_for_label }}">Bicicleta (Marca / Modelo / Cor) *</label>
+                {{ form.bike_description }}
+                {{ form.bike_description.errors }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.bike_serial_number.id_for_label }}">Nº de Série / Quadro</label>
+                {{ form.bike_serial_number }}
+                {{ form.bike_serial_number.errors }}
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: var(--space-lg);">
+            <label for="{{ form.accessories_left.id_for_label }}">Acessórios Deixados</label>
+            {{ form.accessories_left }}
+            {{ form.accessories_left.errors }}
+        </div>
+
+        <!-- Bloco 3: Diagnostico & Queixa -->
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md); color: var(--color-primary-light); border-bottom: 1px solid var(--color-glass-border); padding-bottom: var(--space-xs);">
+            3. Diagnóstico e Problema
+        </h3>
+        <div class="form-group" style="margin-bottom: var(--space-md);">
+            <label for="{{ form.client_reported_defect.id_for_label }}">Problema Relatado pelo Cliente *</label>
+            {{ form.client_reported_defect }}
+            {{ form.client_reported_defect.errors }}
+        </div>
+        <div class="form-group" style="margin-bottom: var(--space-lg);">
+            <label for="{{ form.technical_diagnosis.id_for_label }}">Diagnóstico Técnico Inicial</label>
+            {{ form.technical_diagnosis }}
+            {{ form.technical_diagnosis.errors }}
+        </div>
+
+        <!-- Bloco 4: Responsavel & Prazos -->
+        <h3 style="font-size: 1.1rem; margin-bottom: var(--space-md); color: var(--color-primary-light); border-bottom: 1px solid var(--color-glass-border); padding-bottom: var(--space-xs);">
+            4. Atribuição e Prazo
+        </h3>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-lg);">
+            <div class="form-group">
+                <label for="{{ form.mechanic.id_for_label }}">Mecânico Responsável</label>
+                {{ form.mechanic }}
+                {{ form.mechanic.errors }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.estimated_delivery.id_for_label }}">Previsão de Entrega</label>
+                {{ form.estimated_delivery }}
+                {{ form.estimated_delivery.errors }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.discount.id_for_label }}">Desconto (R$)</label>
+                {{ form.discount }}
+                {{ form.discount.errors }}
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: var(--space-xl);">
+            <label for="{{ form.notes.id_for_label }}">Observações Internas</label>
+            {{ form.notes }}
+            {{ form.notes.errors }}
+        </div>
+
+        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: var(--space-md);">
+            <a href="{% url 'services:service_order_list' %}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary btn-lg">Abrir Ordem de Serviço</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

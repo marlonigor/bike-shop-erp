@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}OS-{{ order.id|truncatechars:8 }} - Bike Shop ERP{% endblock %}
+{% block page_title %}Ordem de Serviço OS-{{ order.id|truncatechars:8 }}{% endblock %}
+
+{% block header_actions %}
+<div style="display: flex; gap: var(--space-sm); align-items: center;">
+    <button type="button" class="btn btn-secondary" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Imprimir
+    </button>
+    <a href="{% url 'services:service_order_list' %}" class="btn btn-secondary">Voltar para Lista</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Barra Superior de Status e Acoes -->
+<div class="card" style="margin-bottom: var(--space-xl); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-md);">
+    <div style="display: flex; align-items: center; gap: var(--space-md);">
+        <div>
+            <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Status Atual:</span>
+            <div style="margin-top: 4px;">
+                {% if order.status == 'DRAFT' %}
+                <span class="badge" style="font-size: 0.95rem; padding: 6px 14px;">Orçamento</span>
+                {% elif order.status == 'APPROVED' %}
+                <span class="badge badge-primary" style="font-size: 0.95rem; padding: 6px 14px;">Aprovada</span>
+                {% elif order.status == 'IN_PROGRESS' %}
+                <span class="badge badge-warning" style="font-size: 0.95rem; padding: 6px 14px;">Em Manutenção</span>
+                {% elif order.status == 'COMPLETED' %}
+                <span class="badge badge-success" style="font-size: 0.95rem; padding: 6px 14px;">Concluída (Pronta)</span>
+                {% elif order.status == 'DELIVERED' %}
+                <span class="badge" style="font-size: 0.95rem; padding: 6px 14px; background: rgba(102, 126, 234, 0.2); color: #8b9ff5;">Entregue ao Cliente</span>
+                {% elif order.status == 'CANCELLED' %}
+                <span class="badge badge-danger" style="font-size: 0.95rem; padding: 6px 14px;">Cancelada</span>
+                {% endif %}
+            </div>
+        </div>
+        <div style="border-left: 1px solid var(--color-glass-border); padding-left: var(--space-md);">
+            <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Data de Abertura:</span>
+            <p style="font-weight: 500; margin-top: 4px;">{{ order.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+
+    <!-- Botoes de Transicao de Status -->
+    <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+        {% if order.status == 'DRAFT' %}
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'APPROVED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Aprovar Orçamento</button>
+        </form>
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'CANCELLED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Deseja realmente reprovar/cancelar este orçamento?')">Cancelar</button>
+        </form>
+
+        {% elif order.status == 'APPROVED' %}
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'IN_PROGRESS' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning">Iniciar Manutenção</button>
+        </form>
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'CANCELLED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Deseja cancelar esta ordem de serviço?')">Cancelar</button>
+        </form>
+
+        {% elif order.status == 'IN_PROGRESS' %}
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'COMPLETED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" onclick="return confirm('Concluir a manutenção dará baixa automática nas peças aplicadas no estoque. Confirmar?')">
+                Concluir Manutenção
+            </button>
+        </form>
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'CANCELLED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Deseja cancelar esta OS?')">Cancelar</button>
+        </form>
+
+        {% elif order.status == 'COMPLETED' %}
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'DELIVERED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-lg">Entregar ao Cliente</button>
+        </form>
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'IN_PROGRESS' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary">Retornar p/ Bancada</button>
+        </form>
+        <form method="post" action="{% url 'services:service_order_change_status' order.id 'CANCELLED' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Cancelar a OS concluída irá estornar as peças para o estoque. Confirmar?')">Cancelar e Estornar</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Grid de Detalhes -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: var(--space-xl);">
+    <!-- Coluna Lateral: Dados da Bike e Cliente -->
+    <div>
+        <div class="card" style="margin-bottom: var(--space-lg);">
+            <div class="card-header">
+                <h3>Dados do Atendimento</h3>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-md);">
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Cliente:</span>
+                    <p style="font-weight: 600; font-size: 1.05rem;">{{ order.customer.name }}</p>
+                    {% if order.customer.phone %}
+                    <small style="color: var(--color-text-secondary);">Tel: {{ order.customer.phone }}</small>
+                    {% endif %}
+                </div>
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Bicicleta:</span>
+                    <p style="font-weight: 600;">{{ order.bike_description }}</p>
+                    {% if order.bike_serial_number %}
+                    <small style="color: var(--color-text-secondary);">Quadro: <code>{{ order.bike_serial_number }}</code></small>
+                    {% endif %}
+                </div>
+                {% if order.accessories_left %}
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Acessórios Deixados:</span>
+                    <p style="color: var(--color-text-secondary);">{{ order.accessories_left }}</p>
+                </div>
+                {% endif %}
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Mecânico Responsável:</span>
+                    <p>{% if order.mechanic %}{{ order.mechanic.get_full_name|default:order.mechanic.username }}{% else %}Não atribuído{% endif %}</p>
+                </div>
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Depósito de Origem:</span>
+                    <p>{{ order.warehouse.name }}</p>
+                </div>
+                {% if order.estimated_delivery %}
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Previsão de Entrega:</span>
+                    <p style="font-weight: 500;">{{ order.estimated_delivery|date:"d/m/Y H:i" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Relato e Diagnóstico</h3>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-md);">
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Problema Relatado:</span>
+                    <p style="margin-top: 4px; white-space: pre-wrap;">{{ order.client_reported_defect }}</p>
+                </div>
+                {% if order.technical_diagnosis %}
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Diagnóstico Técnico:</span>
+                    <p style="margin-top: 4px; white-space: pre-wrap; color: var(--color-text-secondary);">{{ order.technical_diagnosis }}</p>
+                </div>
+                {% endif %}
+                {% if order.notes %}
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Observações Internas:</span>
+                    <p style="margin-top: 4px; color: var(--color-text-muted);">{{ order.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna Principal: Pecas e Servicos -->
+    <div>
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Peças e Serviços da OS</h3>
+            </div>
+
+            <!-- Formulario Inline de Adicao de Item (se OS editavel) -->
+            {% if order.status in 'DRAFT,APPROVED,IN_PROGRESS' %}
+            <div style="padding: var(--space-md); background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-glass-border);">
+                <form hx-post="{% url 'services:service_order_add_item' order.id %}"
+                      hx-target="#items-container"
+                      hx-swap="outerHTML"
+                      @htmx:after-request="$el.reset()"
+                      style="display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: var(--space-sm); align-items: end;">
+                    {% csrf_token %}
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--color-text-muted);">Item / Serviço</label>
+                        {{ item_form.product }}
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--color-text-muted);">Qtd</label>
+                        {{ item_form.quantity }}
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--color-text-muted);">Preço Unit. (Opcional)</label>
+                        {{ item_form.unit_price }}
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            + Adicionar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Tabela dos Itens da OS -->
+            <div class="card-body">
+                {% include "services/partials/order_items_table.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

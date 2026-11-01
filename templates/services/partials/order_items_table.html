@@ -39,6 +39,7 @@
                         hx-post="{% url 'services:service_order_remove_item' order.id item.id %}"
                         hx-target="#items-container"
                         hx-swap="outerHTML"
+                        hx-disabled-elt="this"
                         title="Remover item">
                         &times;
                     </button>

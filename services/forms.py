@@ -91,14 +91,26 @@ class ServiceOrderForm(forms.ModelForm):
         self.fields['notes'].required = False
 
 
+class ProductModelChoiceField(forms.ModelChoiceField):
+    """Campo de selecao que prefixa se o produto e peca fisica ou mao de obra."""
+
+    def label_from_instance(self, obj: Product) -> str:
+        tag = '[Serviço]' if obj.is_service else '[Peça]'
+        return f'{tag} {obj.name} - R$ {obj.price:.2f}'
+
+
 class ServiceOrderItemForm(forms.ModelForm):
     """Formulario para adicao de pecas ou servicos a uma Ordem de Servico."""
+
+    product = ProductModelChoiceField(
+        queryset=Product.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-control select2'}),
+    )
 
     class Meta:
         model = ServiceOrderItem
         fields = ['product', 'quantity', 'unit_price', 'notes']
         widgets = {
-            'product': forms.Select(attrs={'class': 'form-control select2'}),
             'quantity': forms.NumberInput(
                 attrs={'class': 'form-control', 'min': '1', 'value': '1'}
             ),
@@ -112,7 +124,9 @@ class ServiceOrderItemForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.filter(active=True).order_by('name')
+        self.fields['product'].queryset = Product.objects.filter(active=True).order_by(
+            'is_service', 'name'
+        )
         self.fields['unit_price'].required = False
         self.fields['notes'].required = False
 

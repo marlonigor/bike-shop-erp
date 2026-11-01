@@ -176,6 +176,8 @@
                 <form hx-post="{% url 'services:service_order_add_item' order.id %}"
                       hx-target="#items-container"
                       hx-swap="outerHTML"
+                      hx-indicator="#add-item-spinner"
+                      hx-disabled-elt="#btn-add-item"
                       @htmx:after-request="$el.reset()"
                       style="display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: var(--space-sm); align-items: end;">
                     {% csrf_token %}
@@ -191,10 +193,11 @@
                         <label style="font-size: 0.8rem; color: var(--color-text-muted);">Preço Unit. (Opcional)</label>
                         {{ item_form.unit_price }}
                     </div>
-                    <div>
-                        <button type="submit" class="btn btn-primary">
+                    <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                        <button type="submit" id="btn-add-item" class="btn btn-primary">
                             + Adicionar
                         </button>
+                        <div id="add-item-spinner" class="htmx-indicator spinner" style="width: 20px; height: 20px;"></div>
                     </div>
                 </form>
             </div>

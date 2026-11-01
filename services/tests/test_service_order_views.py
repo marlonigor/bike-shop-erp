@@ -122,3 +122,13 @@ class TestServiceOrderViews:
         assert response.status_code == 302
         service_order.refresh_from_db()
         assert service_order.status == ServiceOrder.Status.APPROVED
+
+    def test_service_order_item_form_product_label_distinguishes_service_and_part(
+        self, labor_product
+    ):
+        from services.forms import ServiceOrderItemForm
+
+        form = ServiceOrderItemForm()
+        label = form.fields['product'].label_from_instance(labor_product)
+        assert '[Serviço]' in label
+        assert 'Revisão Suspensão' in label

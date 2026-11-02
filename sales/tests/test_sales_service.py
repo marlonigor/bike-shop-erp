@@ -93,3 +93,61 @@ class TestSalesService:
         assert sale.total_amount == Decimal('150.00')
         assert sale.items.count() == 1
         assert StockService.get_balance(service_prod, warehouse) == 0
+
+    def test_create_sale_from_service_order_success(self, customer, warehouse, product):
+        """OS concluida deve gerar venda no PDV e transicionar para entregue."""
+        from services.models import ServiceOrder, ServiceOrderItem
+
+        order = ServiceOrder.objects.create(
+            customer=customer,
+            warehouse=warehouse,
+            bike_description='Caloi 29',
+            status=ServiceOrder.Status.COMPLETED,
+        )
+        ServiceOrderItem.objects.create(
+            service_order=order,
+            product=product,
+            quantity=2,
+            unit_price=Decimal('100.00'),
+            total_price=Decimal('200.00'),
+        )
+        order.recalculate_totals()
+        sale = SalesService.create_sale_from_service_order(order)
+
+        assert sale.service_order == order
+        assert sale.customer == customer
+        assert sale.total_amount == Decimal('200.00')
+        assert sale.items.count() == 1
+        order.refresh_from_db()
+        assert order.status == ServiceOrder.Status.DELIVERED
+
+    def test_create_sale_from_service_order_invalid_status_raises_error(self, customer, warehouse):
+        """Tentativa de faturar OS nao concluida deve levantar erro de transicao."""
+        from core.exceptions import InvalidStatusTransitionError
+        from services.models import ServiceOrder
+
+        order = ServiceOrder.objects.create(
+            customer=customer,
+            warehouse=warehouse,
+            bike_description='Caloi 29',
+            status=ServiceOrder.Status.DRAFT,
+        )
+        with pytest.raises(InvalidStatusTransitionError):
+            SalesService.create_sale_from_service_order(order)
+
+    def test_create_sale_from_service_order_already_invoiced_raises_error(
+        self, customer, warehouse
+    ):
+        """OS ja faturada nao pode gerar uma segunda venda."""
+        from services.models import ServiceOrder
+
+        order = ServiceOrder.objects.create(
+            customer=customer,
+            warehouse=warehouse,
+            bike_description='Caloi 29',
+            status=ServiceOrder.Status.COMPLETED,
+        )
+        SalesService.create_sale_from_service_order(order)
+
+        with pytest.raises(ValueError, match='ja possui faturamento'):
+            SalesService.create_sale_from_service_order(order)

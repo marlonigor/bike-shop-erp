@@ -76,10 +76,17 @@
         </form>
 
         {% elif order.status == 'COMPLETED' %}
-        <form method="post" action="{% url 'services:service_order_change_status' order.id 'DELIVERED' %}">
+        {% if not order.sale %}
+        <form method="post" action="{% url 'services:service_order_invoice' order.id %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-lg">Entregar ao Cliente</button>
+            <button type="submit" class="btn btn-primary btn-lg" onclick="return confirm('Deseja faturar e entregar esta OS? Uma venda será registrada no sistema.')">
+                Faturar e Entregar
+            </button>
         </form>
+        {% endif %}
+        <a href="{% url 'services:service_order_receipt' order.id %}" class="btn btn-secondary" target="_blank">
+            Imprimir Recibo
+        </a>
         <form method="post" action="{% url 'services:service_order_change_status' order.id 'IN_PROGRESS' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-secondary">Retornar p/ Bancada</button>
@@ -88,6 +95,11 @@
             {% csrf_token %}
             <button type="submit" class="btn btn-danger" onclick="return confirm('Cancelar a OS concluída irá estornar as peças para o estoque. Confirmar?')">Cancelar e Estornar</button>
         </form>
+
+        {% elif order.status == 'DELIVERED' %}
+        <a href="{% url 'services:service_order_receipt' order.id %}" class="btn btn-secondary" target="_blank">
+            Imprimir Recibo
+        </a>
         {% endif %}
     </div>
 </div>
@@ -133,6 +145,12 @@
                 <div>
                     <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Previsão de Entrega:</span>
                     <p style="font-weight: 500;">{{ order.estimated_delivery|date:"d/m/Y H:i" }}</p>
+                </div>
+                {% endif %}
+                {% if order.sale %}
+                <div>
+                    <span style="color: var(--color-text-muted); font-size: 0.8rem; text-transform: uppercase;">Venda Vinculada:</span>
+                    <p style="font-weight: 600; color: var(--color-success);">Venda #{{ order.sale.id|slice:":8" }} (Faturada)</p>
                 </div>
                 {% endif %}
             </div>

@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Recibo OS-{{ order.id|slice:":8" }} | Bike Shop ERP{% endblock %}
+
+{% block content %}
+<style>
+.receipt-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--color-bg-primary);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-glass-border);
+}
+
+.receipt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--color-glass-border);
+    padding-bottom: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.receipt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.receipt-section {
+    background: var(--color-bg-secondary);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-glass-border);
+}
+
+.receipt-section h4 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-xs);
+}
+
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-lg) 0;
+}
+
+.receipt-table th, .receipt-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--color-glass-border);
+    font-size: 0.9rem;
+}
+
+.receipt-table th {
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.receipt-totals {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.receipt-terms {
+    margin-top: var(--space-xl);
+    padding: var(--space-md);
+    border: 1px dashed var(--color-glass-border);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+.receipt-signature {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2xl);
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+}
+
+.signature-line {
+    border-top: 1px solid var(--color-glass-border);
+    text-align: center;
+    padding-top: var(--space-xs);
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .sidebar, .navbar, .no-print {
+        display: none !important;
+    }
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .receipt-wrapper {
+        border: none !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        max-width: 100% !important;
+    }
+    .receipt-section, .receipt-totals {
+        background: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+        color: #000000 !important;
+    }
+    .receipt-table th, .receipt-table td {
+        border-bottom: 1px solid #dee2e6 !important;
+        color: #000000 !important;
+    }
+    .signature-line {
+        border-top: 1px solid #000000 !important;
+        color: #000000 !important;
+    }
+    .receipt-terms {
+        border: 1px dashed #6c757d !important;
+        color: #333333 !important;
+    }
+}
+</style>
+
+<div class="no-print" style="max-width: 800px; margin: 0 auto var(--space-md) auto; display: flex; justify-content: space-between; align-items: center;">
+    <a href="{% url 'services:service_order_detail' order.id %}" class="btn btn-secondary">
+        &larr; Voltar para a OS
+    </a>
+    <button onclick="window.print()" class="btn btn-primary">
+        Imprimir Comprovante
+    </button>
+</div>
+
+<div class="receipt-wrapper">
+    <div class="receipt-header">
+        <div>
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Bike Shop ERP</h2>
+            <p style="color: var(--color-text-muted); margin: 4px 0 0 0; font-size: 0.85rem;">Oficina Mecânica Especializada e Centro Técnico</p>
+            <p style="color: var(--color-text-muted); margin: 2px 0 0 0; font-size: 0.85rem;">Depósito / Unidade: {{ order.warehouse.name }}</p>
+        </div>
+        <div style="text-align: right;">
+            <span class="badge badge-primary" style="font-size: 0.9rem;">OS-{{ order.id|slice:":8" }}</span>
+            <p style="margin: 6px 0 0 0; font-size: 0.85rem; color: var(--color-text-muted);">Data: {{ order.created_at|date:"d/m/Y H:i" }}</p>
+            {% if order.sale %}
+            <p style="margin: 2px 0 0 0; font-size: 0.85rem; font-weight: 600; color: var(--color-success);">Venda #{{ order.sale.id|slice:":8" }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="receipt-grid">
+        <div class="receipt-section">
+            <h4>Dados do Cliente</h4>
+            <p style="font-weight: 600; margin: 0;">{{ order.customer.name }}</p>
+            {% if order.customer.document %}
+            <p style="margin: 2px 0; font-size: 0.85rem; color: var(--color-text-secondary);">CPF/CNPJ: {{ order.customer.document }}</p>
+            {% endif %}
+            {% if order.customer.phone %}
+            <p style="margin: 2px 0; font-size: 0.85rem; color: var(--color-text-secondary);">Tel: {{ order.customer.phone }}</p>
+            {% endif %}
+        </div>
+
+        <div class="receipt-section">
+            <h4>Dados do Equipamento</h4>
+            <p style="font-weight: 600; margin: 0;">{{ order.bike_description }}</p>
+            {% if order.bike_serial_number %}
+            <p style="margin: 2px 0; font-size: 0.85rem; color: var(--color-text-secondary);">Nº de Série: {{ order.bike_serial_number }}</p>
+            {% endif %}
+            <p style="margin: 2px 0; font-size: 0.85rem; color: var(--color-text-secondary);">Mecânico: {% if order.mechanic %}{{ order.mechanic.get_full_name|default:order.mechanic.username }}{% else %}Não atribuído{% endif %}</p>
+        </div>
+    </div>
+
+    {% if order.client_reported_defect %}
+    <div class="receipt-section" style="margin-bottom: var(--space-md);">
+        <h4>Serviço Solicitado / Relato do Cliente</h4>
+        <p style="margin: 0; font-size: 0.9rem;">{{ order.client_reported_defect }}</p>
+    </div>
+    {% endif %}
+
+    <table class="receipt-table">
+        <thead>
+            <tr>
+                <th>Item / Descrição</th>
+                <th>Tipo</th>
+                <th style="text-align: center;">Qtd</th>
+                <th style="text-align: right;">Unitário</th>
+                <th style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{% if item.product.is_service %}Serviço{% else %}Peça{% endif %}</td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td style="text-align: right;">R$ {{ item.unit_price|floatformat:2 }}</td>
+                <td style="text-align: right;">R$ {{ item.total_price|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: var(--color-text-muted);">Nenhum item discriminado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="receipt-totals">
+        <div style="display: flex; justify-content: space-between; width: 220px;">
+            <span style="color: var(--color-text-muted);">Mão de Obra:</span>
+            <span>R$ {{ order.total_services|floatformat:2 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; width: 220px;">
+            <span style="color: var(--color-text-muted);">Peças:</span>
+            <span>R$ {{ order.total_parts|floatformat:2 }}</span>
+        </div>
+        {% if order.discount > 0 %}
+        <div style="display: flex; justify-content: space-between; width: 220px; color: var(--color-danger);">
+            <span>Desconto:</span>
+            <span>- R$ {{ order.discount|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+        <div style="display: flex; justify-content: space-between; width: 220px; font-weight: 700; font-size: 1.15rem; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--color-glass-border);">
+            <span>Total:</span>
+            <span>R$ {{ order.total_amount|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <div class="receipt-terms">
+        <strong>Termos de Garantia:</strong> Garantia legal de 90 (noventa) dias para serviços e peças contra defeitos de fabricação ou montagem, conforme o Artigo 26 do Código de Defesa do Consumidor (Lei nº 8.078/1990). A garantia não cobre danos decorrentes de acidentes, quedas, lavagem de alta pressão sobre rolamentos ou utilização em desacordo com as especificações do fabricante.
+    </div>
+
+    <div class="receipt-signature">
+        <div class="signature-line">
+            Responsável Técnico (Oficina)
+        </div>
+        <div class="signature-line">
+            {{ order.customer.name }} (Cliente)
+        </div>
+    </div>
+</div>
+{% endblock %}

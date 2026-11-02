@@ -21,6 +21,14 @@ class Sale(ModelBase):
     warehouse = models.ForeignKey(
         Warehouse, on_delete=models.PROTECT, related_name='sales', verbose_name='Depósito de Origem'
     )
+    service_order = models.OneToOneField(
+        'services.ServiceOrder',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sale',
+        verbose_name='Ordem de Serviço',
+    )
     total_amount = models.DecimalField(
         max_digits=12, decimal_places=2, default=0, verbose_name='Valor Total'
     )

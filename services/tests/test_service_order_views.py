@@ -132,3 +132,22 @@ class TestServiceOrderViews:
         label = form.fields['product'].label_from_instance(labor_product)
         assert '[Serviço]' in label
         assert 'Revisão Suspensão' in label
+
+    def test_service_order_invoice_view_post_success(self, client, service_order):
+        service_order.status = ServiceOrder.Status.COMPLETED
+        service_order.save()
+
+        url = reverse('services:service_order_invoice', args=[service_order.id])
+        response = client.post(url)
+        assert response.status_code == 302
+        assert response.url == reverse('services:service_order_receipt', args=[service_order.id])
+        service_order.refresh_from_db()
+        assert service_order.status == ServiceOrder.Status.DELIVERED
+        assert service_order.sale is not None
+
+    def test_service_order_receipt_view_returns_200(self, client, service_order):
+        url = reverse('services:service_order_receipt', args=[service_order.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'services/service_order_receipt.html' in [t.name for t in response.templates]
+        assert 'order' in response.context

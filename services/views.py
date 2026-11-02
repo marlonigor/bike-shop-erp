@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.exceptions import InsufficientStockError, InvalidStatusTransitionError
+from sales.services import SalesService
 
 from .forms import ServiceOrderForm, ServiceOrderItemForm
 from .models import ServiceOrder
@@ -154,3 +155,31 @@ def service_order_change_status(
         messages.error(request, str(e))
 
     return redirect('services:service_order_detail', pk=order.id)
+
+
+def service_order_invoice(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
+    """Fatura a OS gerando venda formal no PDV e transicionando para DELIVERED."""
+    order = get_object_or_404(ServiceOrder, pk=pk)
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    try:
+        sale = SalesService.create_sale_from_service_order(order)
+        messages.success(request, f'OS faturada com sucesso na Venda #{str(sale.id)[:8]}!')
+        return redirect('services:service_order_receipt', pk=order.id)
+    except (InvalidStatusTransitionError, ValueError) as err:
+        messages.error(request, str(err))
+        return redirect('services:service_order_detail', pk=order.id)
+
+
+def service_order_receipt(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
+    """Exibe o comprovante e recibo da OS otimizado para impressao ou PDF."""
+    order = get_object_or_404(
+        ServiceOrder.objects.select_related('customer', 'warehouse', 'mechanic', 'sale'),
+        pk=pk,
+    )
+    context = {
+        'order': order,
+        'items': order.items.select_related('product'),
+    }
+    return render(request, 'services/service_order_receipt.html', context)

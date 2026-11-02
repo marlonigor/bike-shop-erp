@@ -236,3 +236,69 @@ class ServiceOrderItem(ModelBase):
         """Garante consistencia do preco total no salvamento."""
         self.total_price = self.unit_price * self.quantity
         super().save(*args, **kwargs)
+
+
+class ServiceOrderChecklist(ModelBase):
+    """
+    Checklist de inspecao na entrada da bicicleta na oficina mecânica.
+    Registra condicoes visuais e mecânicas previas para resguardar oficina e cliente.
+    """
+
+    class Condition(models.TextChoices):
+        OK = 'OK', 'Bom Estado'
+        ATTENTION = 'ATTENTION', 'Requer Atenção'
+        DAMAGED = 'DAMAGED', 'Danificado'
+        NOT_APPLICABLE = 'NA', 'Não Aplicável'
+
+    service_order = models.OneToOneField(
+        ServiceOrder,
+        on_delete=models.CASCADE,
+        related_name='checklist',
+        verbose_name='Ordem de Serviço',
+    )
+    frame_condition = models.CharField(
+        max_length=20,
+        choices=Condition.choices,
+        default=Condition.OK,
+        verbose_name='Quadro e Garfo',
+    )
+    tires_condition = models.CharField(
+        max_length=20,
+        choices=Condition.choices,
+        default=Condition.OK,
+        verbose_name='Pneus e Rodas',
+    )
+    brakes_condition = models.CharField(
+        max_length=20,
+        choices=Condition.choices,
+        default=Condition.OK,
+        verbose_name='Sistema de Freios',
+    )
+    drivetrain_condition = models.CharField(
+        max_length=20,
+        choices=Condition.choices,
+        default=Condition.OK,
+        verbose_name='Transmissão e Câmbios',
+    )
+    suspension_condition = models.CharField(
+        max_length=20,
+        choices=Condition.choices,
+        default=Condition.NOT_APPLICABLE,
+        verbose_name='Suspensão',
+    )
+    has_computer = models.BooleanField(default=False, verbose_name='Ciclocomputador / GPS')
+    has_lights = models.BooleanField(default=False, verbose_name='Farol / Lanterna')
+    has_saddlebag = models.BooleanField(default=False, verbose_name='Bolsa de Selim')
+    has_bottle_cage = models.BooleanField(default=False, verbose_name='Suporte de Caramanhola')
+    has_pedals = models.BooleanField(default=True, verbose_name='Pedais Instalados')
+    observations = models.TextField(
+        blank=True,
+        verbose_name='Observações Detalhadas de Entrada',
+    )
+
+    class Meta:
+        verbose_name = 'Checklist de Entrada'
+        verbose_name_plural = 'Checklists de Entrada'
+
+    def __str__(self) -> str:
+        return f'Checklist OS {str(self.service_order_id)[:8]}'

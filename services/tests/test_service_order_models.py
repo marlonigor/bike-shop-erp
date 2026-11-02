@@ -115,3 +115,19 @@ class TestServiceOrderModels:
         assert 'ServiceOrder' in str(exc_info.value)
         assert 'DRAFT' in str(exc_info.value)
         assert 'DELIVERED' in str(exc_info.value)
+
+    def test_service_order_checklist_creation(self, service_order):
+        from services.models import ServiceOrderChecklist
+
+        checklist = ServiceOrderChecklist.objects.create(
+            service_order=service_order,
+            frame_condition=ServiceOrderChecklist.Condition.ATTENTION,
+            tires_condition=ServiceOrderChecklist.Condition.OK,
+            brakes_condition=ServiceOrderChecklist.Condition.DAMAGED,
+            has_computer=True,
+            observations='Arranhão no tubo superior e pastilha gasta',
+        )
+        assert checklist.service_order == service_order
+        assert checklist.frame_condition == ServiceOrderChecklist.Condition.ATTENTION
+        assert checklist.has_computer is True
+        assert 'Checklist OS' in str(checklist)

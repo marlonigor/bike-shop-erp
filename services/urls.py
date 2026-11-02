@@ -21,4 +21,9 @@ urlpatterns = [
     ),
     path('<uuid:pk>/faturar/', views.service_order_invoice, name='service_order_invoice'),
     path('<uuid:pk>/recibo/', views.service_order_receipt, name='service_order_receipt'),
+    path(
+        '<uuid:pk>/checklist/',
+        views.service_order_checklist_update,
+        name='service_order_checklist_update',
+    ),
 ]

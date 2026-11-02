@@ -192,6 +192,23 @@
     </div>
     {% endif %}
 
+    {% if order.checklist %}
+    <div class="receipt-section" style="margin-bottom: var(--space-md);">
+        <h4>Checklist de Inspeção de Entrada</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 0.8rem;">
+            <span>Quadro: <strong>{{ order.checklist.get_frame_condition_display }}</strong></span>
+            <span>Pneus: <strong>{{ order.checklist.get_tires_condition_display }}</strong></span>
+            <span>Freios: <strong>{{ order.checklist.get_brakes_condition_display }}</strong></span>
+            <span>Transmissão: <strong>{{ order.checklist.get_drivetrain_condition_display }}</strong></span>
+            <span>Suspensão: <strong>{{ order.checklist.get_suspension_condition_display }}</strong></span>
+            <span>Pedais: <strong>{% if order.checklist.has_pedals %}Presentes{% else %}Ausentes{% endif %}</strong></span>
+        </div>
+        {% if order.checklist.observations %}
+        <p style="margin: 6px 0 0 0; font-size: 0.8rem; color: var(--color-text-secondary);">Obs: {{ order.checklist.observations }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
     <table class="receipt-table">
         <thead>
             <tr>
@@ -254,3 +271,4 @@
     </div>
 </div>
 {% endblock %}
+

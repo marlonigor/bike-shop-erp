@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import ServiceOrder, ServiceOrderItem
+from .models import ServiceOrder, ServiceOrderChecklist, ServiceOrderItem
+
+
+class ServiceOrderChecklistInline(admin.StackedInline):
+    model = ServiceOrderChecklist
+    can_delete = False
+    extra = 0
 
 
 class ServiceOrderItemInline(admin.TabularInline):
@@ -35,7 +41,7 @@ class ServiceOrderAdmin(admin.ModelAdmin):
         'completed_at',
         'delivered_at',
     )
-    inlines = [ServiceOrderItemInline]
+    inlines = [ServiceOrderChecklistInline, ServiceOrderItemInline]
 
     @admin.display(description='OS')
     def short_id(self, obj: ServiceOrder) -> str:
@@ -47,3 +53,9 @@ class ServiceOrderItemAdmin(admin.ModelAdmin):
     list_display = ('service_order', 'product', 'quantity', 'unit_price', 'total_price')
     list_filter = ('product__is_service',)
     search_fields = ('product__name', 'service_order__bike_description')
+
+
+@admin.register(ServiceOrderChecklist)
+class ServiceOrderChecklistAdmin(admin.ModelAdmin):
+    list_display = ('service_order', 'frame_condition', 'tires_condition', 'brakes_condition')
+    list_filter = ('frame_condition', 'brakes_condition', 'tires_condition')

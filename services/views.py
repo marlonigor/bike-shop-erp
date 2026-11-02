@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from core.exceptions import InsufficientStockError, InvalidStatusTransitionError
 from sales.services import SalesService
 
-from .forms import ServiceOrderForm, ServiceOrderItemForm
+from .forms import ServiceOrderChecklistForm, ServiceOrderForm, ServiceOrderItemForm
 from .models import ServiceOrder
 from .services import ServiceOrderService
 
@@ -70,10 +70,13 @@ def service_order_detail(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
         ServiceOrder.objects.select_related('customer', 'warehouse', 'mechanic'),
         pk=pk,
     )
+    checklist = getattr(order, 'checklist', None)
     context = {
         'order': order,
         'items': order.items.select_related('product'),
         'item_form': ServiceOrderItemForm(),
+        'checklist': checklist,
+        'checklist_form': ServiceOrderChecklistForm(instance=checklist),
         'allowed_transitions': order.VALID_TRANSITIONS.get(order.status, set()),
     }
     return render(request, 'services/service_order_detail.html', context)
@@ -183,3 +186,22 @@ def service_order_receipt(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
         'items': order.items.select_related('product'),
     }
     return render(request, 'services/service_order_receipt.html', context)
+
+
+def service_order_checklist_update(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
+    """Salva ou atualiza a inspecao do checklist de entrada da bicicleta."""
+    order = get_object_or_404(ServiceOrder, pk=pk)
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    checklist = getattr(order, 'checklist', None)
+    form = ServiceOrderChecklistForm(request.POST, instance=checklist)
+    if not form.is_valid():
+        messages.error(request, 'Erros encontrados no preenchimento do checklist.')
+        return redirect('services:service_order_detail', pk=order.id)
+
+    checklist_obj = form.save(commit=False)
+    checklist_obj.service_order = order
+    checklist_obj.save()
+    messages.success(request, 'Checklist de entrada atualizado com sucesso!')
+    return redirect('services:service_order_detail', pk=order.id)

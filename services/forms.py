@@ -7,7 +7,7 @@ from catalog.models import Product
 from customers.models import Customer
 from stock.models import Warehouse
 
-from .models import ServiceOrder, ServiceOrderItem
+from .models import ServiceOrder, ServiceOrderChecklist, ServiceOrderItem
 
 
 class ServiceOrderForm(forms.ModelForm):
@@ -139,3 +139,37 @@ class ServiceOrderItemForm(forms.ModelForm):
             cleaned_data['unit_price'] = product.price
 
         return cleaned_data
+
+
+class ServiceOrderChecklistForm(forms.ModelForm):
+    """Formulario para inspecao tecnica e preenchimento de checklist de entrada da bike."""
+
+    class Meta:
+        model = ServiceOrderChecklist
+        fields = [
+            'frame_condition',
+            'tires_condition',
+            'brakes_condition',
+            'drivetrain_condition',
+            'suspension_condition',
+            'has_computer',
+            'has_lights',
+            'has_saddlebag',
+            'has_bottle_cage',
+            'has_pedals',
+            'observations',
+        ]
+        widgets = {
+            'frame_condition': forms.Select(attrs={'class': 'form-control'}),
+            'tires_condition': forms.Select(attrs={'class': 'form-control'}),
+            'brakes_condition': forms.Select(attrs={'class': 'form-control'}),
+            'drivetrain_condition': forms.Select(attrs={'class': 'form-control'}),
+            'suspension_condition': forms.Select(attrs={'class': 'form-control'}),
+            'observations': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'rows': 3,
+                    'placeholder': 'Descreva arranhões ou detalhes prévios da bicicleta...',
+                }
+            ),
+        }

@@ -151,3 +151,22 @@ class TestServiceOrderViews:
         assert response.status_code == 200
         assert 'services/service_order_receipt.html' in [t.name for t in response.templates]
         assert 'order' in response.context
+
+    def test_service_order_checklist_update_view(self, client, service_order):
+        url = reverse('services:service_order_checklist_update', args=[service_order.id])
+        data = {
+            'frame_condition': 'ATTENTION',
+            'tires_condition': 'OK',
+            'brakes_condition': 'DAMAGED',
+            'drivetrain_condition': 'OK',
+            'suspension_condition': 'NA',
+            'has_computer': True,
+            'has_pedals': True,
+            'observations': 'Arranhão no quadro',
+        }
+        response = client.post(url, data)
+        assert response.status_code == 302
+        assert response.url == reverse('services:service_order_detail', args=[service_order.id])
+        service_order.refresh_from_db()
+        assert service_order.checklist.frame_condition == 'ATTENTION'
+        assert service_order.checklist.has_computer is True

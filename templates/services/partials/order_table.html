@@ -33,6 +33,9 @@
                 <span class="badge badge-success">Concluída</span>
                 {% elif order.status == 'DELIVERED' %}
                 <span class="badge" style="background: rgba(102, 126, 234, 0.2); color: #8b9ff5;">Entregue</span>
+                {% if order.sale %}
+                <span class="badge badge-success" style="font-size: 0.7rem; margin-top: 2px; display: block;">Faturada</span>
+                {% endif %}
                 {% elif order.status == 'CANCELLED' %}
                 <span class="badge badge-danger">Cancelada</span>
                 {% endif %}

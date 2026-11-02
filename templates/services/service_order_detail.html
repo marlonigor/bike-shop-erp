@@ -179,6 +179,117 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Card de Checklist de Entrada -->
+        <div class="card" style="margin-top: var(--space-lg);">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Checklist de Entrada</h3>
+                {% if order.status in 'DRAFT,APPROVED,IN_PROGRESS' %}
+                <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('checklist-form-box').style.display = document.getElementById('checklist-form-box').style.display === 'none' ? 'block' : 'none'">
+                    Editar Inspeção
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if checklist %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); font-size: 0.85rem; margin-bottom: var(--space-md);">
+                    <div>
+                        <span style="color: var(--color-text-muted);">Quadro:</span>
+                        <strong>{{ checklist.get_frame_condition_display }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--color-text-muted);">Pneus:</span>
+                        <strong>{{ checklist.get_tires_condition_display }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--color-text-muted);">Freios:</span>
+                        <strong>{{ checklist.get_brakes_condition_display }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--color-text-muted);">Transmissão:</span>
+                        <strong>{{ checklist.get_drivetrain_condition_display }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--color-text-muted);">Suspensão:</span>
+                        <strong>{{ checklist.get_suspension_condition_display }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--color-text-muted);">Pedais:</span>
+                        <strong>{% if checklist.has_pedals %}Sim{% else %}Não{% endif %}</strong>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: var(--space-sm);">
+                    <span>Acessórios: </span>
+                    {% if checklist.has_computer %}<span class="badge">GPS/Ciclocomp.</span>{% endif %}
+                    {% if checklist.has_lights %}<span class="badge">Farol/Luz</span>{% endif %}
+                    {% if checklist.has_saddlebag %}<span class="badge">Bolsa</span>{% endif %}
+                    {% if checklist.has_bottle_cage %}<span class="badge">Caramanhola</span>{% endif %}
+                    {% if not checklist.has_computer and not checklist.has_lights and not checklist.has_saddlebag and not checklist.has_bottle_cage %}
+                    <span>Nenhum acessório extra</span>
+                    {% endif %}
+                </div>
+
+                {% if checklist.observations %}
+                <div style="margin-top: var(--space-xs); font-size: 0.85rem; color: var(--color-text-muted);">
+                    <small>Obs: {{ checklist.observations }}</small>
+                </div>
+                {% endif %}
+                {% else %}
+                <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: var(--space-sm);">
+                    Checklist de entrada não preenchido.
+                </p>
+                {% endif %}
+
+                <!-- Formulario Expansivel para Preenchimento -->
+                {% if order.status in 'DRAFT,APPROVED,IN_PROGRESS' %}
+                <div id="checklist-form-box" style="display: {% if not checklist %}block{% else %}none{% endif %}; margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--color-glass-border);">
+                    <form method="post" action="{% url 'services:service_order_checklist_update' order.id %}">
+                        {% csrf_token %}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--color-text-muted);">Quadro/Garfo</label>
+                                {{ checklist_form.frame_condition }}
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--color-text-muted);">Pneus/Rodas</label>
+                                {{ checklist_form.tires_condition }}
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--color-text-muted);">Freios</label>
+                                {{ checklist_form.brakes_condition }}
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--color-text-muted);">Transmissão</label>
+                                {{ checklist_form.drivetrain_condition }}
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="font-size: 0.75rem; color: var(--color-text-muted);">Suspensão</label>
+                                {{ checklist_form.suspension_condition }}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-sm); font-size: 0.8rem;">
+                            <label>{{ checklist_form.has_computer }} GPS/Ciclocomputador</label>
+                            <label>{{ checklist_form.has_lights }} Farol/Lanterna</label>
+                            <label>{{ checklist_form.has_saddlebag }} Bolsa Selim</label>
+                            <label>{{ checklist_form.has_bottle_cage }} Suporte Garrafa</label>
+                            <label>{{ checklist_form.has_pedals }} Pedais</label>
+                        </div>
+
+                        <div style="margin-bottom: var(--space-sm);">
+                            <label style="font-size: 0.75rem; color: var(--color-text-muted);">Observações da Entrada</label>
+                            {{ checklist_form.observations }}
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            Salvar Checklist
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <!-- Coluna Principal: Pecas e Servicos -->

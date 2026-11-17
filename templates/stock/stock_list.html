@@ -16,7 +16,7 @@
     <!-- Filtros -->
     <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-lg); align-items: center;">
         <select class="form-input" name="warehouse" hx-get="{% url 'stock:stock_list' %}" hx-trigger="change"
-            hx-target="#stock-table" hx-indicator="#stock-filter-indicator" style="max-width: 200px;">
+            hx-target="#stock-table" hx-include="[name='low_stock']" hx-indicator="#stock-filter-indicator" style="max-width: 200px;">
             <option value="">Todos os depósitos</option>
             {% for wh in warehouses %}
             <option value="{{ wh.id }}" {% if wh.is_selected %}selected{% endif %}>
@@ -27,7 +27,7 @@
 
         <label style="display: flex; align-items: center; gap: var(--space-sm);">
             <input type="checkbox" name="low_stock" value="1" hx-get="{% url 'stock:stock_list' %}" hx-trigger="change"
-                hx-target="#stock-table" hx-indicator="#stock-filter-indicator" {% if low_stock %}checked{% endif %}>
+                hx-target="#stock-table" hx-include="[name='warehouse']" hx-indicator="#stock-filter-indicator" {% if low_stock %}checked{% endif %}>
             Apenas baixo estoque
         </label>
 

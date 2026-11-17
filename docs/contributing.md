@@ -45,6 +45,19 @@ O script executa em sequencia:
 2. Checagem de formatacao com `ruff format --check .`
 3. Suite de testes unitarios e integrados com `pytest`
 
+### Varredura de Segredos Antes do Push
+Antes de publicar uma branch, execute a varredura completa do historico Git:
+
+```bash
+# Linux / macOS
+./bin/scan-secrets
+
+# Windows
+bin\scan-secrets.bat
+```
+
+O script usa a imagem Docker fixada `ghcr.io/gitleaks/gitleaks:v8.30.1`, sob licenca MIT, e oculta possiveis segredos na saida. A varredura falha se encontrar uma credencial potencial; investigue e remova a origem antes do push. Nao use excecoes para ocultar credenciais reais.
+
 ### Execucao Manual via Ambiente Local
 Caso utilize ambiente virtual (`.venv`):
 

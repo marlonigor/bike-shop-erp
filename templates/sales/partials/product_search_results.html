@@ -20,7 +20,11 @@
             hx-indicator="#pdv-spinner">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ item.product.id }}">
-            <input type="number" name="quantity" value="1" min="1" max="{{ item.stock }}" class="qty-input">
+            <label class="sr-only" for="product-quantity-{{ item.product.id }}">
+                Quantidade de {{ item.product.name }}
+            </label>
+            <input id="product-quantity-{{ item.product.id }}" type="number" name="quantity" value="1" min="1"
+                max="{{ item.stock }}" class="qty-input">
             <button type="submit" class="btn btn-sm btn-primary" {% if item.stock == 0 %}disabled{% endif %}>
                 + Adicionar
             </button>

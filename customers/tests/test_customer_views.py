@@ -75,6 +75,26 @@ class TestCustomerViews:
         assert 'customerCreated' in response.headers['HX-Trigger']
         assert Customer.objects.filter(name='Carlos PDV').exists()
 
+    def test_customer_create_pdv_source_keeps_invalid_data_in_modal(self, client) -> None:
+        """Preserva o cadastro rápido para que o atendente corrija os campos inválidos."""
+        url = reverse('customers:customer_create') + '?source=pdv'
+
+        response = client.post(url, {'name': ''}, headers={'HX-Request': 'true'})
+
+        assert response.status_code == 200
+        assert 'pdv-customer-form' in response.content.decode()
+        assert 'id_name' in response.content.decode()
+
+    def test_customer_create_pdv_source_retargets_selected_option(self, client) -> None:
+        """Insere o cliente válido no seletor sem substituir o modal inteiro."""
+        url = reverse('customers:customer_create') + '?source=pdv'
+        data = {'name': 'Ana PDV', 'phone': '11966666666', 'active': True}
+
+        response = client.post(url, data, headers={'HX-Request': 'true'})
+
+        assert response.headers['HX-Retarget'] == '#client-select'
+        assert response.headers['HX-Reswap'] == 'beforeend'
+
     def test_customer_list_view_htmx_returns_partial(self, client, customer):
         url = reverse('customers:customer_list')
         response = client.get(url, headers={'HX-Request': 'true'})

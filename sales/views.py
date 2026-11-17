@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from catalog.models import Product
+from customers.forms import CustomerForm
 from customers.models import Customer
 from stock.models import Warehouse
 from stock.services import StockService
@@ -31,6 +32,7 @@ def pdv(request: HttpRequest) -> HttpResponse:
         'customers': clients,
         'cart': cart,
         'cart_total': cart_total,
+        'customer_form': CustomerForm(),
     }
     return render(request, 'sales/pdv.html', context)
 

@@ -4,6 +4,7 @@ import pytest
 from django.urls import reverse
 
 from catalog.models import Brand, Category, Product
+from stock.models import Stock
 
 
 @pytest.mark.django_db
@@ -29,6 +30,26 @@ class TestProductViews:
         assert 'products' in response.context
         assert setup_data['product'] in response.context['products']
         assert 'catalog/product_list.html' in [t.name for t in response.templates]
+
+    def test_product_list_filters_price_and_consolidated_availability(
+        self, client, setup_data, warehouse
+    ) -> None:
+        """Combina faixa de preço com peças disponíveis em qualquer depósito."""
+        available_product = setup_data['product']
+        Stock.objects.create(product=available_product, warehouse=warehouse, quantity=2)
+        unavailable_product = Product.objects.create(
+            name='Pneu sem saldo',
+            sku='PNEU-SEM',
+            price=Decimal('750.00'),
+            cost=Decimal('350.00'),
+            category=setup_data['category'],
+        )
+
+        url = reverse('catalog:product_list')
+        response = client.get(f'{url}?min_price=500&max_price=1500&availability=IN_STOCK')
+
+        assert list(response.context['products']) == [available_product]
+        assert unavailable_product not in response.context['products']
 
     def test_product_create_view_post_valid_data(self, client, setup_data):
         url = reverse('catalog:product_create')

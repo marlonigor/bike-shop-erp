@@ -58,6 +58,15 @@ bin\scan-secrets.bat
 
 O script usa a imagem Docker fixada `ghcr.io/gitleaks/gitleaks:v8.30.1`, sob licenca MIT, e oculta possiveis segredos na saida. A varredura falha se encontrar uma credencial potencial; investigue e remova a origem antes do push. Nao use excecoes para ocultar credenciais reais.
 
+### Massa de Demonstracao Local
+Para popular o banco local com clientes, produtos, estoque, vendas e ordens de servico ficticias, execute:
+
+```bash
+docker compose run --rm web python manage.py seed_demo_data
+```
+
+O comando usa nomes, SKUs e e-mails com o marcador `[DEMO]` ou o dominio `example.test`. Ele nao remove dados existentes e pode ser executado novamente sem duplicar sua propria massa.
+
 ### Execucao Manual via Ambiente Local
 Caso utilize ambiente virtual (`.venv`):
 

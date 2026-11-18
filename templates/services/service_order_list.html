@@ -9,6 +9,7 @@
 
 {% block content %}
 <div class="card" x-data="{ currentStatus: '{{ selected_status|default:'ALL' }}' }">
+    <input type="hidden" name="status" x-model="currentStatus">
     <!-- Barra de Filtros e Busca -->
     <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); flex-wrap: wrap;">
         <!-- Abas de Status -->

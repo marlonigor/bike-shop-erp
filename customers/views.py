@@ -35,8 +35,30 @@ def _pdv_customer_response(customer: Customer) -> HttpResponse:
     }
     return HttpResponse(
         f'<option value="{customer.id}" selected>{customer.name}</option>',
-        headers={'HX-Trigger': json.dumps(payload)},
+        headers={
+            'HX-Reswap': 'beforeend',
+            'HX-Retarget': '#client-select',
+            'HX-Trigger': json.dumps(payload),
+        },
     )
+
+
+def _invalid_customer_create_response(request: HttpRequest, form: CustomerForm) -> HttpResponse:
+    """Preserva os dados do cadastro rápido quando a validação falhar.
+
+    Example:
+        response = _invalid_customer_create_response(request, form)
+    """
+    is_quick_registration = request.headers.get('HX-Request') and request.GET.get('source') == 'pdv'
+    template = (
+        'customers/partials/pdv_customer_form.html'
+        if is_quick_registration
+        else 'customers/customer_form.html'
+    )
+    response = render(request, template, {'form': form})
+    if is_quick_registration:
+        response['HX-Trigger'] = 'customerFormInvalid'
+    return response
 
 
 def customer_create(request: HttpRequest) -> HttpResponse:
@@ -46,7 +68,7 @@ def customer_create(request: HttpRequest) -> HttpResponse:
 
     form = CustomerForm(request.POST)
     if not form.is_valid():
-        return render(request, 'customers/customer_form.html', {'form': form})
+        return _invalid_customer_create_response(request, form)
 
     customer = form.save()
     if not request.headers.get('HX-Request'):

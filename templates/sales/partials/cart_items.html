@@ -17,7 +17,9 @@
                 <span class="item-sku">{{ item.sku }}</span>
             </td>
             <td class="text-center">
+                <label class="sr-only" for="cart-quantity-{{ item.product_id }}">Quantidade de {{ item.name }}</label>
                 <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="qty-input qty-inline"
+                    id="cart-quantity-{{ item.product_id }}"
                     hx-post="{% url 'sales:cart_update' %}" hx-target="#cart-items" hx-swap="innerHTML"
                     hx-trigger="change" hx-include="this" hx-vals='{"product_id": "{{ item.product_id }}"}'>
             </td>
@@ -25,7 +27,8 @@
             <td class="text-right font-bold">R$ {{ item.total }}</td>
             <td class="text-center">
                 <button class="btn-remove" hx-post="{% url 'sales:cart_remove' %}" hx-target="#cart-items"
-                    hx-swap="innerHTML" hx-vals='{"product_id": "{{ item.product_id }}"}' title="Remover item">
+                    hx-swap="innerHTML" hx-vals='{"product_id": "{{ item.product_id }}"}'
+                    aria-label="Remover {{ item.name }} do carrinho">
                     &times;
                 </button>
             </td>

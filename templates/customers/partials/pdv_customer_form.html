@@ -1,0 +1,40 @@
+<div id="pdv-customer-form">
+    <form x-ref="customerForm" hx-post="{% url 'customers:customer_create' %}?source=pdv"
+        hx-target="#pdv-customer-form" hx-swap="outerHTML">
+        {% csrf_token %}
+        <div class="modal-body">
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Nome completo *</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <span class="field-error" role="alert">{{ form.name.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.phone.id_for_label }}">Telefone</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                <span class="field-error" role="alert">{{ form.phone.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.document.id_for_label }}">CPF/CNPJ</label>
+                {{ form.document }}
+                {% if form.document.errors %}
+                <span class="field-error" role="alert">{{ form.document.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <input type="hidden" name="active" value="on">
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" @click="showCustomerModal = false">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar e selecionar</button>
+        </div>
+    </form>
+</div>

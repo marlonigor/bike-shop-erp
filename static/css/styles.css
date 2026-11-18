@@ -8,11 +8,11 @@
 /* CSS Variables - Premium Dark Theme */
 :root {
     /* Gradient Colors */
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-primary: linear-gradient(135deg, #3f51b5 0%, #5a3c81 100%);
     --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --gradient-success: linear-gradient(135deg, #087f5b 0%, #0b6b50 100%);
     --gradient-warning: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
-    --gradient-danger: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    --gradient-danger: linear-gradient(135deg, #c92a3d 0%, #9b1c2c 100%);
     --gradient-dark: linear-gradient(135deg, #0c0c1e 0%, #1a1a3e 100%);
 
     /* Base Colors - Dark Mode Default */

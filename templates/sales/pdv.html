@@ -9,11 +9,15 @@
     clientId: '',
     showConfirm: false,
     showCustomerModal: false,
+    saleError: '',
     cartCount: {{ cart|length }},
     get canFinalize() {
         return Boolean(this.warehouseId && this.clientId && this.cartCount > 0);
     }
-}" @cart-updated.window="cartCount = $event.detail.count">
+}" x-init="$watch('showConfirm', visible => { if (visible) $nextTick(() => $refs.confirmCancel.focus()) }); $watch('showCustomerModal', visible => { if (visible) $nextTick(() => document.getElementById('id_name')?.focus()) })"
+    @cart-updated.window="cartCount = $event.detail.count"
+    @customerCreated.window="showCustomerModal = false; $refs.customerForm.reset()"
+    @customerFormInvalid.window="$nextTick(() => document.getElementById('id_name').focus())">
     <!-- Loading Indicator Global -->
     <div class="htmx-indicator pdv-loading" id="pdv-spinner">
         <div class="spinner"></div>
@@ -23,8 +27,8 @@
     <!-- Cabecalho PDV -->
     <div class="pdv-header">
         <div class="form-group">
-            <label>Deposito</label>
-            <select name="warehouse_id" x-model="warehouseId" required>
+            <label for="warehouse-select">Depósito</label>
+            <select id="warehouse-select" name="warehouse_id" x-model="warehouseId" required>
                 <option value="">Selecione o deposito...</option>
                 {% for wh in warehouses %}
                 <option value="{{ wh.id }}">{{ wh.name }}</option>
@@ -33,7 +37,7 @@
         </div>
 
         <div class="form-group">
-            <label>Cliente</label>
+            <label for="client-select">Cliente</label>
             <div class="field-with-action">
                 <select name="client_id" id="client-select" x-model="clientId" required>
                     <option value="">Selecione o cliente...</option>
@@ -41,7 +45,8 @@
                     <option value="{{ client.id }}">{{ client.name }}</option>
                     {% endfor %}
                 </select>
-                <button type="button" class="btn btn-sm btn-secondary" @click="showCustomerModal = true" title="Cadastrar Novo Cliente">
+                <button type="button" class="btn btn-sm btn-secondary" @click="showCustomerModal = true"
+                    aria-label="Cadastrar novo cliente">
                     + Novo
                 </button>
             </div>
@@ -56,6 +61,7 @@
                     <h3>Buscar Produto</h3>
                 </div>
                 <div class="card-body">
+                    <label class="sr-only" for="search-input">Buscar produto por nome ou SKU</label>
                     <input type="text" name="q" placeholder="Digite o nome ou SKU... (Esc limpa)"
                         hx-get="{% url 'sales:product_search' %}"
                         hx-trigger="keyup changed delay:300ms, change from:[name='warehouse_id']"
@@ -64,7 +70,7 @@
                         @keydown.escape="$el.value = ''; document.getElementById('search-results').innerHTML = ''"
                         id="search-input">
 
-                    <div id="search-results" class="search-results"></div>
+                    <div id="search-results" class="search-results" aria-live="polite"></div>
                 </div>
             </div>
         </div>
@@ -88,7 +94,7 @@
                     </div>
                 </div>
 
-                <div id="cart-items" class="card-body">
+                <div id="cart-items" class="card-body" aria-live="polite">
                     {% include "sales/partials/cart_items.html" %}
                 </div>
 
@@ -102,9 +108,13 @@
 
                     <!-- Botao abre modal de confirmacao -->
                     <button type="button" class="btn btn-primary btn-lg btn-block"
-                        :disabled="!canFinalize" @click="showConfirm = true">
+                        :disabled="!canFinalize" @click="saleError = ''; showConfirm = true" aria-describedby="finalize-hint">
                         Finalizar Venda
                     </button>
+                    <p id="finalize-hint" class="form-hint" aria-live="polite"
+                        x-text="canFinalize ? 'Confira o total e confirme a venda.' : 'Selecione depósito, cliente e ao menos um item para finalizar.'">
+                        Selecione depósito, cliente e ao menos um item para finalizar.
+                    </p>
                 </div>
             </div>
         </div>
@@ -115,14 +125,16 @@
         x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end"
         x-transition:leave="modal-leave" x-transition:leave-start="modal-leave-start"
         x-transition:leave-end="modal-leave-end" @click.self="showConfirm = false"
-        @keydown.escape.window="showConfirm = false">
+        @keydown.escape.window="showConfirm = false" @keydown.tab="trapModalFocus($event, $refs.confirmDialog)">
 
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="confirm-sale-title"
+            aria-describedby="confirm-sale-description" tabindex="-1" x-ref="confirmDialog">
             <div class="modal-header">
-                <h3>Confirmar Venda</h3>
+                <h3 id="confirm-sale-title">Confirmar venda</h3>
             </div>
             <div class="modal-body">
-                <p>Deseja finalizar esta venda?</p>
+                <p id="confirm-sale-description">Deseja finalizar esta venda?</p>
+                <p class="field-error" role="alert" x-show="saleError" x-text="saleError"></p>
                 <div class="confirm-details">
                     <span class="confirm-total" id="confirm-total">
                         Total: R$ {{ cart_total|floatformat:2 }}
@@ -130,14 +142,15 @@
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" @click="showConfirm = false">
+                <button type="button" class="btn btn-secondary" x-ref="confirmCancel" @click="showConfirm = false">
                     Cancelar
                 </button>
                 <form hx-post="{% url 'sales:sale_complete' %}" hx-target="#cart-items"
                     hx-include="[name='warehouse_id'], [name='client_id']" hx-indicator="#pdv-spinner"
-                    @htmx:after-request="showConfirm = false">
+                    @htmx:after-request="if ($event.detail.successful) { showConfirm = false; saleError = '' }"
+                    @htmx:response-error="saleError = $event.detail.xhr.responseText">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-lg">
+                    <button type="submit" class="btn btn-success btn-lg" x-ref="confirmSale">
                         Confirmar
                     </button>
                 </form>
@@ -149,46 +162,41 @@
     <div class="modal-overlay" x-show="showCustomerModal" x-cloak
         x-transition:enter="modal-enter" x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end"
         x-transition:leave="modal-leave" x-transition:leave-start="modal-leave-start" x-transition:leave-end="modal-leave-end"
-        @click.self="showCustomerModal = false" @keydown.escape.window="showCustomerModal = false">
+        @click.self="showCustomerModal = false" @keydown.escape.window="showCustomerModal = false"
+        @keydown.tab="trapModalFocus($event, $refs.customerDialog)">
 
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="new-customer-title"
+            aria-describedby="new-customer-description" tabindex="-1" x-ref="customerDialog">
             <div class="modal-header">
-                <h3>Cadastrar Novo Cliente</h3>
+                <h3 id="new-customer-title">Cadastrar novo cliente</h3>
             </div>
-            <form hx-post="{% url 'customers:customer_create' %}?source=pdv"
-                hx-target="#client-select" hx-swap="beforeend"
-                @htmx:after-request="showCustomerModal = false; $el.reset()">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="form-group" style="margin-bottom: var(--space-md);">
-                        <label>Nome Completo</label>
-                        <input type="text" name="name" required placeholder="Nome do cliente">
-                    </div>
-                    <div class="form-group" style="margin-bottom: var(--space-md);">
-                        <label>Telefone</label>
-                        <input type="text" name="phone" placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="form-group" style="margin-bottom: var(--space-md);">
-                        <label>CPF/CNPJ</label>
-                        <input type="text" name="document" placeholder="Apenas números">
-                    </div>
-                    <input type="hidden" name="active" value="on">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" @click="showCustomerModal = false">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Salvar e Selecionar
-                    </button>
-                </div>
-            </form>
+            <p id="new-customer-description" class="sr-only">Preencha os dados para criar e selecionar o cliente.</p>
+            {% include "customers/partials/pdv_customer_form.html" with form=customer_form %}
         </div>
     </div>
 </div>
 
 <!-- Atalhos de teclado e listeners -->
 <script>
+    function trapModalFocus(event, dialog) {
+        if (event.key !== 'Tab') return;
+
+        const controls = dialog.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const firstControl = controls[0];
+        const lastControl = controls[controls.length - 1];
+        if (!firstControl || !lastControl) return;
+
+        if (event.shiftKey && document.activeElement === firstControl) {
+            event.preventDefault();
+            lastControl.focus();
+        } else if (!event.shiftKey && document.activeElement === lastControl) {
+            event.preventDefault();
+            firstControl.focus();
+        }
+    }
+
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F2') {
             e.preventDefault();

@@ -178,25 +178,6 @@
 
 <!-- Atalhos de teclado e listeners -->
 <script>
-    function trapModalFocus(event, dialog) {
-        if (event.key !== 'Tab') return;
-
-        const controls = dialog.querySelectorAll(
-            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        );
-        const firstControl = controls[0];
-        const lastControl = controls[controls.length - 1];
-        if (!firstControl || !lastControl) return;
-
-        if (event.shiftKey && document.activeElement === firstControl) {
-            event.preventDefault();
-            lastControl.focus();
-        } else if (!event.shiftKey && document.activeElement === lastControl) {
-            event.preventDefault();
-            firstControl.focus();
-        }
-    }
-
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F2') {
             e.preventDefault();

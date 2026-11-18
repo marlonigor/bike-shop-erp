@@ -50,3 +50,16 @@ def test_base_template_compiles_with_django() -> None:
         template = get_template('base.html')
     """
     assert get_template('base.html')
+
+
+def test_service_order_completion_uses_an_accessible_confirmation_modal() -> None:
+    """Evita que a baixa de estoque dependa da confirmacao nativa do navegador."""
+    source = _read_project_file('templates/services/service_order_detail.html')
+
+    assert 'showCompletionModal' in source
+    assert 'role="dialog"' in source
+    assert 'aria-modal="true"' in source
+    assert 'x-ref="completionDialog"' in source
+    assert 'form="completion-order-form"' in source
+    assert 'onclick="return confirm(\'Concluir a manutenção' not in source
+    assert get_template('services/service_order_detail.html')

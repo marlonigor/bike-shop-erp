@@ -42,7 +42,7 @@
     </div>
 
     <!-- Botoes de Transicao de Status -->
-    <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+    <div x-data="{ showCompletionModal: false }" style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
         {% if order.status == 'DRAFT' %}
         <form method="post" action="{% url 'services:service_order_change_status' order.id 'APPROVED' %}">
             {% csrf_token %}
@@ -64,12 +64,37 @@
         </form>
 
         {% elif order.status == 'IN_PROGRESS' %}
-        <form method="post" action="{% url 'services:service_order_change_status' order.id 'COMPLETED' %}">
+        <form id="completion-order-form" method="post" action="{% url 'services:service_order_change_status' order.id 'COMPLETED' %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-success" onclick="return confirm('Concluir a manutenção dará baixa automática nas peças aplicadas no estoque. Confirmar?')">
+            <button type="button" class="btn btn-success" aria-haspopup="dialog" aria-controls="completion-confirmation-dialog"
+                :aria-expanded="showCompletionModal.toString()" @click="showCompletionModal = true; $nextTick(() => $refs.completionDialog.focus())">
                 Concluir Manutenção
             </button>
         </form>
+        <div class="modal-overlay" x-show="showCompletionModal" x-cloak x-transition:enter="modal-enter"
+            x-transition:enter-start="modal-enter-start" x-transition:enter-end="modal-enter-end"
+            x-transition:leave="modal-leave" x-transition:leave-start="modal-leave-start"
+            x-transition:leave-end="modal-leave-end" @click.self="showCompletionModal = false"
+            @keydown.escape.window="showCompletionModal = false" @keydown.tab="trapModalFocus($event, $refs.completionDialog)">
+            <div id="completion-confirmation-dialog" class="modal-content" role="dialog" aria-modal="true"
+                aria-labelledby="completion-confirmation-title" aria-describedby="completion-confirmation-description"
+                tabindex="-1" x-ref="completionDialog">
+                <div class="modal-header">
+                    <h3 id="completion-confirmation-title">Concluir manutenção?</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="completion-confirmation-description">As peças aplicadas serão baixadas automaticamente do estoque.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" @click="showCompletionModal = false">
+                        Voltar
+                    </button>
+                    <button type="submit" form="completion-order-form" class="btn btn-success btn-lg">
+                        Confirmar conclusão
+                    </button>
+                </div>
+            </div>
+        </div>
         <form method="post" action="{% url 'services:service_order_change_status' order.id 'CANCELLED' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger" onclick="return confirm('Deseja cancelar esta OS?')">Cancelar</button>

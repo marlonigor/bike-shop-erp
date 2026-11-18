@@ -45,6 +45,12 @@ O script executa em sequencia:
 2. Checagem de formatacao com `ruff format --check .`
 3. Suite de testes unitarios e integrados com `pytest`
 
+### Testes E2E de Navegador
+Os cenarios de navegador tambem rodam pelo comando padronizado `bin\\test.bat` ou
+`./bin/test`. Eles usam Playwright 1.58.0 (Apache-2.0) e Chromium headless,
+instalados na imagem Docker durante o build. Cada teste abre uma pagina limpa e usa
+o servidor de teste isolado do Django, sem depender da massa de demonstracao local.
+
 ### Varredura de Segredos Antes do Push
 Antes de publicar uma branch, execute a varredura completa do historico Git:
 
@@ -57,6 +63,15 @@ bin\scan-secrets.bat
 ```
 
 O script usa a imagem Docker fixada `ghcr.io/gitleaks/gitleaks:v8.30.1`, sob licenca MIT, e oculta possiveis segredos na saida. A varredura falha se encontrar uma credencial potencial; investigue e remova a origem antes do push. Nao use excecoes para ocultar credenciais reais.
+
+### Massa de Demonstracao Local
+Para popular o banco local com clientes, produtos, estoque, vendas e ordens de servico ficticias, execute:
+
+```bash
+docker compose run --rm web python manage.py seed_demo_data
+```
+
+O comando usa nomes, SKUs e e-mails com o marcador `[DEMO]` ou o dominio `example.test`. Ele nao remove dados existentes e pode ser executado novamente sem duplicar sua propria massa.
 
 ### Execucao Manual via Ambiente Local
 Caso utilize ambiente virtual (`.venv`):

@@ -45,6 +45,12 @@ O script executa em sequencia:
 2. Checagem de formatacao com `ruff format --check .`
 3. Suite de testes unitarios e integrados com `pytest`
 
+### Testes E2E de Navegador
+Os cenarios de navegador tambem rodam pelo comando padronizado `bin\\test.bat` ou
+`./bin/test`. Eles usam Playwright 1.58.0 (Apache-2.0) e Chromium headless,
+instalados na imagem Docker durante o build. Cada teste abre uma pagina limpa e usa
+o servidor de teste isolado do Django, sem depender da massa de demonstracao local.
+
 ### Varredura de Segredos Antes do Push
 Antes de publicar uma branch, execute a varredura completa do historico Git:
 

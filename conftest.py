@@ -2,9 +2,32 @@
 Fixtures compartilhadas para testes do Bike Shop ERP.
 """
 
+from collections.abc import Generator
 from decimal import Decimal
 
 import pytest
+from playwright.sync_api import Browser, Page, sync_playwright
+
+
+@pytest.fixture
+def chromium_browser() -> Generator[Browser, None, None]:
+    """Inicia Chromium isolado para os testes E2E em modo headless."""
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        try:
+            yield browser
+        finally:
+            browser.close()
+
+
+@pytest.fixture
+def browser_page(chromium_browser: Browser) -> Generator[Page, None, None]:
+    """Entrega uma pagina limpa e a encerra ao terminar cada teste E2E."""
+    browser_page = chromium_browser.new_page()
+    try:
+        yield browser_page
+    finally:
+        browser_page.close()
 
 
 @pytest.fixture

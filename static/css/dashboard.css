@@ -1,0 +1,168 @@
+/* Cores opacas tornam o contraste previsível nos dois temas do painel. */
+.dashboard-panel {
+    --color-surface: #1a1a3e;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #c7cee0;
+    --color-text-muted: #c7cee0;
+    --dashboard-alert: #ffb4ab;
+    --dashboard-border: #8993b8;
+    --dashboard-focus: #b9c6ff;
+    min-width: 0;
+}
+
+.light .dashboard-panel {
+    --color-surface: #ffffff;
+    --color-text-primary: #1a1a2e;
+    --color-text-secondary: #45455c;
+    --color-text-muted: #45455c;
+    --dashboard-alert: #a61b2b;
+    --dashboard-border: #6b6b85;
+    --dashboard-focus: #3f51b5;
+    --color-success: #146c43;
+}
+
+/* O cabeçalho e a navegação acompanham o fundo claro desta tela. */
+.light body:has(.dashboard-panel) .header,
+.light body:has(.dashboard-panel) .sidebar {
+    background: #ffffff;
+}
+
+.content:has(.dashboard-panel) {
+    background: var(--color-bg-primary);
+}
+
+.dashboard-panel .btn {
+    color: var(--color-text-primary);
+    border: 1px solid var(--dashboard-border);
+}
+
+.dashboard-panel .btn-primary {
+    color: #ffffff;
+    border-color: transparent;
+}
+
+.dashboard-table-hint {
+    display: none;
+}
+
+.dashboard-panel .filters-bar {
+    background: var(--color-surface);
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.dashboard-panel .filter-item {
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.dashboard-panel .filter-item input,
+.dashboard-panel .filter-item select {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    border-color: var(--dashboard-border);
+    color-scheme: dark;
+}
+
+.light .dashboard-panel .filter-item input,
+.light .dashboard-panel .filter-item select {
+    color-scheme: light;
+}
+
+.dashboard-context {
+    margin: calc(-1 * var(--space-md)) 0 var(--space-lg);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+.dashboard-panel .stats-grid .stat-value {
+    background: none;
+    color: var(--color-text-primary);
+    -webkit-text-fill-color: currentColor;
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-panel .stat-content,
+.dashboard-panel .card {
+    min-width: 0;
+}
+
+.dashboard-panel .stat-label {
+    color: var(--color-text-secondary);
+}
+
+.dashboard-panel .card-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.dashboard-panel .badge-danger {
+    color: var(--dashboard-alert);
+}
+
+.dashboard-panel :focus-visible {
+    outline-color: var(--dashboard-focus);
+}
+
+.dashboard-chart {
+    height: 350px;
+}
+
+.dashboard-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: var(--space-xs);
+}
+
+.dashboard-table-scroll .table {
+    min-width: 380px;
+}
+
+.dashboard-money {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+    .dashboard-table-hint {
+        display: block;
+        margin-bottom: var(--space-md);
+        color: var(--color-text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .dashboard-panel .card,
+    .dashboard-panel .stat-card,
+    .dashboard-panel .filters-bar {
+        padding: var(--space-md);
+    }
+
+    .dashboard-panel .filter-item {
+        flex: 0 1 auto;
+    }
+
+    .dashboard-panel .filter-actions {
+        align-self: stretch;
+        flex-wrap: wrap;
+    }
+
+    .dashboard-panel .filter-actions .btn {
+        flex: 1 1 100px;
+    }
+
+    .dashboard-panel .dashboard-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-chart {
+        height: 260px;
+    }
+
+    .dashboard-panel .table td,
+    .dashboard-panel .table th {
+        padding: var(--space-sm);
+    }
+}

@@ -21,6 +21,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body class="app-container" :class="{ 'sidebar-collapsed': !sidebarOpen }"

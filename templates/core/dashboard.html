@@ -1,9 +1,41 @@
 {% extends "base.html" %}
+{% load i18n static %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">{% endblock %}
 
 {% block title %}Dashboard - Bike Shop ERP{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
+{% language 'pt-br' %}
+<div class="dashboard-panel">
+<form class="filters-bar" method="get" action="{% url 'dashboard' %}">
+    <div class="filter-item">
+        <label for="dashboard-start-date">Data inicial</label>
+        <input id="dashboard-start-date" type="date" name="start_date" value="{{ filters.start_date|date:'Y-m-d' }}">
+    </div>
+    <div class="filter-item">
+        <label for="dashboard-end-date">Data final</label>
+        <input id="dashboard-end-date" type="date" name="end_date" value="{{ filters.end_date|date:'Y-m-d' }}">
+    </div>
+    <div class="filter-item">
+        <label for="dashboard-warehouse">Depósito</label>
+        <select id="dashboard-warehouse" name="warehouse">
+            <option value="">Todos os depósitos</option>
+            {% for warehouse in warehouses %}
+            <option value="{{ warehouse.id }}" {% if selected_warehouse == warehouse.id|stringformat:'s' %}selected{% endif %}>
+                {{ warehouse.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Limpar</a>
+    </div>
+</form>
+<p class="dashboard-context">Vendas e OS seguem o período selecionado. Os alertas mostram o estoque atual do depósito.</p>
+
 <!-- Stats Cards -->
 <div class="stats-grid">
     <div class="stat-card">
@@ -11,7 +43,7 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
         </div>
         <div class="stat-content">
-            <span class="stat-value">R$ {{ total_vendas|floatformat:2 }}</span>
+            <span class="stat-value">R$ {{ total_vendas|floatformat:'2g' }}</span>
             <span class="stat-label">Total em Vendas</span>
         </div>
     </div>
@@ -21,8 +53,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
         </div>
         <div class="stat-content">
-            <span class="stat-value">{{ vendas_hoje }}</span>
-            <span class="stat-label">Vendas Finalizadas</span>
+            <span class="stat-value">{{ vendas_no_periodo }}</span>
+            <span class="stat-label">Vendas no Período</span>
         </div>
     </div>
 
@@ -31,8 +63,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
         </div>
         <div class="stat-content">
-            <span class="stat-value">{{ produtos_ativos }}</span>
-            <span class="stat-label">Produtos Ativos</span>
+            <span class="stat-value">{{ ordens_ativas }}</span>
+            <span class="stat-label">OS Ativas no Período</span>
         </div>
     </div>
 
@@ -42,7 +74,7 @@
         </div>
         <div class="stat-content">
             <span class="stat-value">{{ produtos_baixo_estoque }}</span>
-            <span class="stat-label">Baixo Estoque</span>
+            <span class="stat-label">Alertas de Estoque</span>
         </div>
     </div>
 </div>
@@ -52,28 +84,87 @@
     <!-- Gráfico de Vendas -->
     <div class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
-            <h3>Desempenho de Vendas (Mensal)</h3>
+            <h3>Desempenho de Vendas</h3>
             <div class="header-actions">
-                <span class="badge">Ultimos 6 Meses</span>
+                <span class="badge">{{ filters.start_date|date:'d/m/Y' }} a {{ filters.end_date|date:'d/m/Y' }}</span>
             </div>
         </div>
-        <div class="card-body" style="height: 350px;">
-            <canvas id="salesChart"></canvas>
+        {% if chart_data %}
+        <div class="card-body dashboard-chart">
+            <canvas id="salesChart" role="img" aria-label="Vendas concluídas por dia no período selecionado"></canvas>
+        </div>
+        {% else %}
+        <div class="card-body">
+            <p class="empty-state">Nenhuma venda concluída no período selecionado.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>OS Abertas no Período</h3>
+            <a href="{% url 'services:service_order_list' %}" class="btn btn-sm">Ver Oficina</a>
+        </div>
+        <div class="card-body">
+            <ul class="dashboard-status-grid" aria-label="Ordens de serviço abertas por status">
+                {% for metric in service_order_statuses %}
+                <li class="dashboard-status-item">
+                    <span class="dashboard-status-label">{{ metric.label }}</span>
+                    <strong>{{ metric.count }}</strong>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Produtos Mais Vendidos</h3>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-sm">Ver Produtos</a>
+        </div>
+        <div class="card-body">
+            {% if top_products %}
+            <p class="dashboard-table-hint">Deslize a tabela para ver todas as colunas.</p>
+            <div class="dashboard-table-scroll" role="region" aria-label="Produtos mais vendidos" tabindex="0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Unidades</th>
+                        <th>Receita</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in top_products %}
+                    <tr>
+                        <td><strong>{{ product.name }}</strong><br><small>{{ product.sku }}</small></td>
+                        <td class="text-center">{{ product.quantity }}</td>
+                        <td class="text-right dashboard-money">R$ {{ product.revenue|floatformat:'2g' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <p class="empty-state">Nenhum produto vendido no período.</p>
+            {% endif %}
         </div>
     </div>
 
     <!-- Últimas Vendas -->
     <div class="card">
         <div class="card-header">
-            <h3>Ultimas Vendas</h3>
+            <h3>Últimas Vendas</h3>
             <a href="{% url 'sales:pdv' %}" class="btn btn-sm">Ver Todas</a>
         </div>
         <div class="card-body">
             {% if ultimas_vendas %}
+            <p class="dashboard-table-hint">Deslize a tabela para ver todas as colunas.</p>
+            <div class="dashboard-table-scroll" role="region" aria-label="Últimas vendas" tabindex="0">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Codigo</th>
+                        <th>Código</th>
                         <th>Cliente</th>
                         <th>Total</th>
                     </tr>
@@ -83,11 +174,12 @@
                     <tr>
                         <td><code>{{ venda.id|truncatechars:8 }}</code></td>
                         <td>{{ venda.customer.name|default:"—" }}</td>
-                        <td class="text-right">R$ {{ venda.total_amount|floatformat:2 }}</td>
+                        <td class="text-right dashboard-money">R$ {{ venda.total_amount|floatformat:'2g' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
             {% else %}
             <p class="empty-state">Nenhuma venda registrada.</p>
             {% endif %}
@@ -98,15 +190,17 @@
     <div class="card">
         <div class="card-header">
             <h3>Alertas de Estoque</h3>
-            <a href="{% url 'stock:stock_list' %}?low_stock=1" class="btn btn-sm">Ver Todos</a>
+            <a href="{% url 'stock:stock_list' %}?low_stock=1{% if selected_warehouse %}&amp;warehouse={{ selected_warehouse }}{% endif %}" class="btn btn-sm">Ver Todos</a>
         </div>
         <div class="card-body">
             {% if alertas_estoque %}
+            <p class="dashboard-table-hint">Deslize a tabela para ver todas as colunas.</p>
+            <div class="dashboard-table-scroll" role="region" aria-label="Alertas de estoque" tabindex="0">
             <table class="table">
                 <thead>
                     <tr>
                         <th>Produto</th>
-                        <th>Deposito</th>
+                        <th>Depósito</th>
                         <th>Qtd</th>
                     </tr>
                 </thead>
@@ -120,19 +214,29 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </div>
             {% else %}
             <p class="empty-state success">Estoque em dia.</p>
             {% endif %}
         </div>
     </div>
 </div>
+</div>
+{% endlanguage %}
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('salesChart').getContext('2d');
+        const chartElement = document.getElementById('salesChart');
+        if (!chartElement) {
+            return;
+        }
+        const ctx = chartElement.getContext('2d');
+        const panel = document.querySelector('.dashboard-panel');
+        const chartColors = getComputedStyle(panel);
+        const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Gradiente para a linha
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -159,6 +263,7 @@
                 }]
             },
             options: {
+                animation: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
@@ -175,7 +280,7 @@
                         displayColors: false,
                         callbacks: {
                             label: function (context) {
-                                return 'R$ ' + context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                return currency.format(context.parsed.y);
                             }
                         }
                     }
@@ -184,14 +289,14 @@
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
+                            color: chartColors.getPropertyValue('--dashboard-border').trim(),
                             drawBorder: false
                         },
                         ticks: {
-                            color: 'rgba(255, 255, 255, 0.5)',
+                            color: chartColors.getPropertyValue('--color-text-secondary').trim(),
                             font: { size: 11 },
                             callback: function (value) {
-                                return 'R$ ' + value.toLocaleString('pt-BR');
+                                return currency.format(value);
                             }
                         }
                     },
@@ -200,13 +305,21 @@
                             display: false
                         },
                         ticks: {
-                            color: 'rgba(255, 255, 255, 0.5)',
+                            color: chartColors.getPropertyValue('--color-text-secondary').trim(),
                             font: { size: 11 }
                         }
                     }
                 }
             }
         });
+        new MutationObserver(function () {
+            const colors = getComputedStyle(panel);
+            const textColor = colors.getPropertyValue('--color-text-secondary').trim();
+            salesChart.options.scales.x.ticks.color = textColor;
+            salesChart.options.scales.y.ticks.color = textColor;
+            salesChart.options.scales.y.grid.color = colors.getPropertyValue('--dashboard-border').trim();
+            salesChart.update('none');
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     });
 </script>
 {% endblock %}

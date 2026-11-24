@@ -80,6 +80,12 @@ docker compose run --rm web python manage.py createsuperuser
 - Cadastro de clientes vinculado ao historico de compras e ordens de servico.
 - Classificacao de itens de catalogo entre produtos fisicos (controlados por estoque) e servicos.
 
+### 5. Painel Gerencial
+- Visao inicial com vendas, ordens de servico em andamento e alertas de estoque baixo.
+- Periodo de 30 dias por padrao, com filtro por intervalo de datas e deposito.
+- Acompanhamento de vendas diarias, produtos mais vendidos e distribuicao das ordens abertas por status.
+- Valores em reais no formato brasileiro, temas claro e escuro e tabelas com rolagem lateral no celular.
+
 ---
 
 ## Documentacao Tecnica e Contribuicao

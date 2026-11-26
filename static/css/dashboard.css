@@ -126,6 +126,55 @@
     font-variant-numeric: tabular-nums;
 }
 
+.dashboard-comparison {
+    grid-column: 1 / -1;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-lg) 0;
+}
+
+.comparison-metric {
+    min-width: 0;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--dashboard-border);
+    color: var(--color-text-secondary);
+    overflow-wrap: anywhere;
+}
+
+.comparison-metric dt {
+    font-weight: 600;
+}
+
+.comparison-current {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-primary);
+}
+
+.comparison-trend {
+    margin-top: var(--space-sm);
+    font-weight: 600;
+}
+
+.comparison-trend--up {
+    color: var(--color-success);
+}
+
+.comparison-trend--down {
+    color: var(--dashboard-alert);
+}
+
+.comparison-period,
+.comparison-note {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
 @media (max-width: 768px) {
     .dashboard-table-hint {
         display: block;

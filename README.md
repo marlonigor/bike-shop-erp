@@ -85,6 +85,7 @@ docker compose run --rm web python manage.py createsuperuser
 - Periodo de 30 dias por padrao, com filtro por intervalo de datas e deposito.
 - Acompanhamento de vendas diarias, produtos mais vendidos e distribuicao das ordens abertas por status.
 - Valores em reais no formato brasileiro, temas claro e escuro e tabelas com rolagem lateral no celular.
+- Comparacao automatica de faturamento, quantidade de vendas e ticket medio com o periodo anterior de mesma duracao, no mesmo deposito. Por exemplo, 01/11 a 30/11 compara com 02/10 a 31/10. Sem base anterior, a tela explica por que nao calcula a porcentagem.
 
 ---
 

@@ -1,0 +1,31 @@
+<section class="card dashboard-comparison" aria-labelledby="comparison-heading">
+    <div class="card-header">
+        <h3 id="comparison-heading">Comparação com o período anterior</h3>
+    </div>
+    <p class="comparison-period">Atual: {{ filters.start_date|date:'d/m/Y' }} a {{ filters.end_date|date:'d/m/Y' }}.</p>
+    {% if period_comparison.period %}
+    <p class="comparison-period">Anterior: {{ period_comparison.period.start_date|date:'d/m/Y' }} a {{ period_comparison.period.end_date|date:'d/m/Y' }} — mesma duração, mesmo filtro de depósito.</p>
+    {% if not period_comparison.has_previous_sales %}
+    <p class="comparison-note">Não houve vendas concluídas no período anterior.</p>
+    {% endif %}
+    {% else %}
+    <p class="comparison-note">Não há intervalo anterior completo disponível para estas datas.</p>
+    {% endif %}
+    <dl class="comparison-grid">
+        {% for metric in period_comparison.metrics %}
+        <div class="comparison-metric">
+            <dt>{{ metric.label }}</dt>
+            <dd class="comparison-current">{% if metric.monetary %}R$ {{ metric.current|floatformat:'2g' }}{% else %}{{ metric.current|floatformat:'0g' }}{% endif %}</dd>
+            <dd>Anterior: {% if metric.monetary %}R$ {{ metric.previous|floatformat:'2g' }}{% else %}{{ metric.previous|floatformat:'0g' }}{% endif %}</dd>
+            <dd class="comparison-trend comparison-trend--{{ metric.trend }}">
+                {% if metric.percentage is None %}Sem base anterior para calcular a variação.
+                {% elif metric.trend == 'flat' %}Sem alteração (0,0%).
+                {% elif metric.trend == 'up' %}{% if metric.percentage == 0 %}Aumento inferior a 0,1%.{% else %}Aumento de {{ metric.percentage|floatformat:'1g' }}%.{% endif %}
+                {% else %}{% if metric.percentage == 0 %}Queda inferior a 0,1%.{% else %}Queda de {{ metric.percentage|floatformat:'1g' }}%.{% endif %}
+                {% endif %}
+            </dd>
+        </div>
+        {% endfor %}
+    </dl>
+    <p class="comparison-note">Somente vendas concluídas. Ticket médio = faturamento dividido pela quantidade de vendas.</p>
+</section>

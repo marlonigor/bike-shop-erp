@@ -24,4 +24,5 @@ def test_dashboard_formats_currency_in_brazilian_portuguese(
     )
     response = client.get(reverse('dashboard'))
 
-    assert response.content.decode().count('R$ 1.234,56') == 2
+    # Total, última venda, faturamento comparativo e ticket médio usam a mesma moeda.
+    assert response.content.decode().count('R$ 1.234,56') == 4

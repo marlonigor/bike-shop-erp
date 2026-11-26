@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
+from core.dashboard_comparison import PeriodComparison, build_period_comparison
 from sales.models import Sale, SaleItem
 from services.models import ServiceOrder
 from stock.models import Stock, Warehouse
@@ -66,6 +67,7 @@ class DashboardData:
     metrics: DashboardMetrics
     chart_labels: list[str]
     chart_data: list[float]
+    period_comparison: PeriodComparison
 
 
 class DashboardContext(TypedDict):
@@ -84,6 +86,7 @@ class DashboardContext(TypedDict):
     alertas_estoque: QuerySet[Stock]
     chart_labels: list[str]
     chart_data: list[float]
+    period_comparison: PeriodComparison
 
 
 def _default_date_range() -> tuple[date, date]:
@@ -189,7 +192,16 @@ def _dashboard_data(filters: DashboardFilters) -> DashboardData:
     low_stock = _low_stock(filters)
     metrics = _dashboard_metrics(sales, orders, low_stock)
     chart_labels, chart_data = _sales_chart(sales)
-    return DashboardData(filters, sales, orders, low_stock, metrics, chart_labels, chart_data)
+    comparison = build_period_comparison(
+        filters.start_date,
+        filters.end_date,
+        filters.warehouse_id,
+        metrics.total_sales,
+        metrics.sales_count,
+    )
+    return DashboardData(
+        filters, sales, orders, low_stock, metrics, chart_labels, chart_data, comparison
+    )
 
 
 def _dashboard_recent_records(data: DashboardData) -> tuple[QuerySet[Sale], QuerySet[Stock]]:
@@ -217,6 +229,7 @@ def _dashboard_context(data: DashboardData) -> DashboardContext:
         'alertas_estoque': stock_alerts,
         'chart_labels': data.chart_labels,
         'chart_data': data.chart_data,
+        'period_comparison': data.period_comparison,
     }
 
 

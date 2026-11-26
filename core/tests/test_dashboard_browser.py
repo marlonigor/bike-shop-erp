@@ -1,9 +1,11 @@
 """Confere legibilidade e adaptação do painel em Chromium isolado."""
 
+from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from django.utils import timezone
 from playwright.sync_api import Page, Route, expect
 from pytest_django.live_server_helper import LiveServer
 
@@ -87,6 +89,8 @@ def test_dashboard_has_readable_stat_values(
     assert _text_contrast(browser_page, '.card-header .btn') >= 4.5
     assert _text_contrast(browser_page, '.empty-state.success') >= 4.5
     assert _text_contrast(browser_page, '.page-title') >= 4.5
+    assert _text_contrast(browser_page, '.comparison-current') >= 4.5
+    assert _text_contrast(browser_page, '.comparison-note') >= 4.5
     browser_page.screenshot(path=str(tmp_path / f'dashboard-{theme}.png'), full_page=True)
 
 
@@ -101,6 +105,9 @@ def test_dashboard_fits_the_viewport(
     assert browser_page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     expect(browser_page.get_by_role('region', name='Produtos mais vendidos')).to_be_visible()
     expect(browser_page.locator('.stat-value').first).to_have_text('R$ 1.234,56')
+    expect(
+        browser_page.get_by_role('heading', name='Comparação com o período anterior')
+    ).to_be_visible()
     browser_page.screenshot(path=str(tmp_path / f'dashboard-{width}.png'), full_page=True)
 
 
@@ -123,3 +130,38 @@ def test_dashboard_applies_warehouse_and_keeps_touch_targets(
     expect(browser_page.get_by_role('link', name='Ver Todos', exact=True)).to_have_attribute(
         'href', f'/estoque/?low_stock=1&warehouse={dashboard_sale.warehouse_id}'
     )
+
+
+@pytest.fixture
+def comparison_baseline(dashboard_sale: Sale) -> Sale:
+    """Cria uma referência de metade do valor atual no intervalo anterior."""
+    sale = Sale.objects.create(
+        customer_id=dashboard_sale.customer_id,
+        warehouse_id=dashboard_sale.warehouse_id,
+        total_amount=Decimal('617.28'),
+        status=Sale.Status.COMPLETED,
+    )
+    Sale.objects.filter(pk=sale.pk).update(created_at=timezone.now() - timedelta(days=30))
+    return sale
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize(('theme', 'width'), [('dark', 320), ('light', 1280)])
+def test_dashboard_shows_the_comparison_without_color_only_meanings(
+    comparison_baseline: Sale,
+    live_server: LiveServer,
+    browser_page: Page,
+    theme: str,
+    width: int,
+    tmp_path: Path,
+) -> None:
+    """Expõe valores anteriores, tendência por extenso e datas nos dois temas."""
+    _open_dashboard(browser_page, live_server.url, width, theme)
+    panel = browser_page.get_by_role('region', name='Comparação com o período anterior', exact=True)
+    expect(panel.locator('.comparison-current').first).to_have_text('R$ 1.234,56')
+    expect(panel.get_by_text('Anterior: R$ 617,28', exact=True)).to_have_count(2)
+    expect(panel.get_by_text('Aumento de 100,0%.', exact=True)).to_have_count(2)
+    expect(panel.get_by_text('Sem alteração (0,0%).', exact=True)).to_be_visible()
+    assert _text_contrast(browser_page, '.comparison-trend--up') >= 4.5
+    assert browser_page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    browser_page.screenshot(path=str(tmp_path / f'comparison-{theme}-{width}.png'), full_page=True)

@@ -29,21 +29,62 @@ O comando realiza a copia do `.env.example` para `.env`, o build da imagem Docke
 
 Toda contribuicao de codigo deve passar pela suite de testes e respeitar as regras do linter antes de ser submetida.
 
-### Execucao da Suite de Testes Headless
+### Verificacao Completa e Headless
 Utilize o script padronizado:
 
 ```bash
 # Linux / macOS
-./bin/test
+bash bin/check
 
 # Windows
-bin\test.bat
+bin\check.bat
 ```
 
-O script executa em sequencia:
-1. Verificacao de regras de lint com `ruff check .`
-2. Checagem de formatacao com `ruff format --check .`
-3. Suite de testes unitarios e integrados com `pytest`
+O comando para na primeira falha e executa:
+1. Build da imagem de desenvolvimento.
+2. Tipagem estrita com mypy 2.4.1 e django-stubs 6.1.2 (ambos MIT).
+3. Verificacao de configuracao com `python manage.py check`.
+4. Lint e formatacao com Ruff.
+5. Suite de testes unitarios, integrados e de navegador com pytest.
+
+O mypy verifica todos os modulos de aplicacao de `core`, `catalog`, `customers`,
+`sales`, `services` e `stock`, incluindo modelos, formularios, views, admin e comandos.
+Tambem verifica `bikeshop` e o ponto de entrada `manage.py`.
+Migrations geradas e arquivos de testes nao entram na analise estatica; os testes
+continuam obrigatorios na execucao completa. A configuracao `mypy.ini` ativa
+`strict`, proibe `Any` explicito e tipos desconhecidos de imports sem contrato.
+`typings/decouple.pyi` descreve a API usada do python-decouple 3.8, que nao fornece
+tipos. Nenhum valor de configuracao ou credencial e acessado por esse contrato.
+
+A cobertura de aplicacao usa `.coveragerc`, com suporte ao greenlet do Playwright.
+Arquivos de testes e migrations geradas ficam fora dessa medicao; nenhum teste
+e desativado. Para medir, acrescente os argumentos `--cov` dos modulos desejados
+ao comando de verificacao completa.
+
+`bin/test` e `bin\\test.bat` permanecem como atalhos de lint, formatacao e pytest
+para diagnosticos rapidos. Eles nao substituem `bin/check` antes da publicacao.
+
+### Hooks Locais e CI
+
+O setup ativa os hooks de Git. Em um checkout existente, execute uma vez:
+
+```bash
+# Linux / macOS / Git Bash
+bash bin/install-hooks
+
+# Windows
+bin\install-hooks.bat
+```
+
+O instalador configura somente este repositorio e pode ser repetido. Se houver
+outro `core.hooksPath`, ele interrompe a ativacao para preservar os hooks existentes.
+O hook `pre-commit` executa `bin/check`; o `pre-push` executa a mesma verificacao e
+a varredura de segredos. Docker precisa estar disponivel. No Windows, Git Bash
+e necessario para a execucao dos hooks. Falhas bloqueiam a acao, sem alterar arquivos.
+
+O CI chama `bash bin/check` e a mesma varredura nas branches `main`, `codex/**`
+e nas pull requests para `main`. Ativar protecoes de branch no GitHub e uma
+configuracao externa; estes scripts nao alteram essas protecoes.
 
 ### Testes E2E de Navegador
 Os cenarios de navegador tambem rodam pelo comando padronizado `bin\\test.bat` ou

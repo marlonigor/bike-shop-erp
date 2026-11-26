@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+previous_hooks=$(git config --get core.hooksPath || true)
+if [ -n "$previous_hooks" ] && [ "$previous_hooks" != ".githooks" ]; then
+  echo "Erro: ha hooks personalizados. Integre-os antes de ativar .githooks." >&2
+  exit 1
+fi
+chmod +x .githooks/pre-commit .githooks/pre-push
+git config --local core.hooksPath .githooks
+echo "Hooks locais ativados. Commit e push exigem bin/check aprovado."

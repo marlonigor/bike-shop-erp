@@ -10,3 +10,5 @@ db.sqlite3
 .vscode/
 .coverage
 htmlcov/
+.mypy_cache/
+.pytest_cache/

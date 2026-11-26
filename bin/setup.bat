@@ -23,5 +23,9 @@ echo Starting database service...
 
 echo Running migrations...
 %COMPOSE% run --rm web python manage.py migrate
+if errorlevel 1 exit /b %errorlevel%
+
+call bin\install-hooks.bat
+if errorlevel 1 exit /b %errorlevel%
 
 echo Setup completed successfully.

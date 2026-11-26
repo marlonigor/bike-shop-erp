@@ -27,4 +27,6 @@ $COMPOSE up -d db
 echo "Running migrations..."
 $COMPOSE run --rm web python manage.py migrate
 
+bash bin/install-hooks
+
 echo "Setup completed successfully."

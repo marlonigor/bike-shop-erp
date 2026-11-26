@@ -2,24 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'codex/**' ]
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
-    name: Lint, Format & Test
+    name: Build, Types, Lint, Format & Test
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up environment file
         run: cp .env.example .env
 
-      - name: Build web container
-        run: docker compose build web
+      - name: Run shared quality checks
+        run: bash bin/check
 
-      - name: Run CI checks via bin/test
-        run: bash bin/test
+      - name: Scan committed history for secrets
+        run: bash bin/scan-secrets

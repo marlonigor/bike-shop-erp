@@ -7,7 +7,7 @@ from stock.models import Warehouse
 class Command(BaseCommand):
     help = 'Popula o banco de dados com dados iniciais para teste'
 
-    def handle(self, *args, **options):
+    def handle(self, *args: object, **options: object) -> None:
         self.stdout.write('Iniciando populagem de dados...')
 
         # 1. Criar Categorias

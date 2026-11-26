@@ -7,7 +7,9 @@ from .models import Stock, StockMovement
 
 
 @receiver(post_save, sender=StockMovement)
-def update_stock_balance(sender, instance, created, **kwargs):
+def update_stock_balance(
+    sender: type[StockMovement], instance: StockMovement, created: bool, **kwargs: object
+) -> None:
     """
     Atualiza o saldo da tabela Stock sempre que uma StockMovement é criada.
 

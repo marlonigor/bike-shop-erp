@@ -5,6 +5,6 @@ class StockConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'stock'
 
-    def ready(self):
+    def ready(self) -> None:
         # Importa os signals quando o app estiver pronto
         import stock.signals  # noqa: F401

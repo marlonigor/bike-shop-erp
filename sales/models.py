@@ -1,4 +1,7 @@
+from collections.abc import Iterable
+
 from django.db import models
+from django.db.models.base import ModelBase as DjangoModelClass
 
 from catalog.models import Product
 from core.models import ModelBase
@@ -70,9 +73,20 @@ class SaleItem(ModelBase):
         verbose_name = 'Item da Venda'
         verbose_name_plural = 'Itens da Venda'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.product.name} ({self.quantity})'
 
-    def save(self, *args, **kwargs):
+    def save(
+        self,
+        force_insert: bool | tuple[DjangoModelClass, ...] = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: Iterable[str] | None = None,
+    ) -> None:
         self.total_price = self.unit_price * self.quantity
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )

@@ -3,13 +3,13 @@ from django.contrib import admin
 from .models import ServiceOrder, ServiceOrderChecklist, ServiceOrderItem
 
 
-class ServiceOrderChecklistInline(admin.StackedInline):
+class ServiceOrderChecklistInline(admin.StackedInline[ServiceOrderChecklist, ServiceOrder]):
     model = ServiceOrderChecklist
     can_delete = False
     extra = 0
 
 
-class ServiceOrderItemInline(admin.TabularInline):
+class ServiceOrderItemInline(admin.TabularInline[ServiceOrderItem, ServiceOrder]):
     model = ServiceOrderItem
     extra = 1
     fields = ('product', 'quantity', 'unit_price', 'total_price', 'notes')
@@ -17,7 +17,7 @@ class ServiceOrderItemInline(admin.TabularInline):
 
 
 @admin.register(ServiceOrder)
-class ServiceOrderAdmin(admin.ModelAdmin):
+class ServiceOrderAdmin(admin.ModelAdmin[ServiceOrder]):
     list_display = (
         'short_id',
         'customer',
@@ -49,13 +49,13 @@ class ServiceOrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(ServiceOrderItem)
-class ServiceOrderItemAdmin(admin.ModelAdmin):
+class ServiceOrderItemAdmin(admin.ModelAdmin[ServiceOrderItem]):
     list_display = ('service_order', 'product', 'quantity', 'unit_price', 'total_price')
     list_filter = ('product__is_service',)
     search_fields = ('product__name', 'service_order__bike_description')
 
 
 @admin.register(ServiceOrderChecklist)
-class ServiceOrderChecklistAdmin(admin.ModelAdmin):
+class ServiceOrderChecklistAdmin(admin.ModelAdmin[ServiceOrderChecklist]):
     list_display = ('service_order', 'frame_condition', 'tires_condition', 'brakes_condition')
     list_filter = ('frame_condition', 'brakes_condition', 'tires_condition')

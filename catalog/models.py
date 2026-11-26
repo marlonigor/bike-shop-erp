@@ -1,9 +1,14 @@
+from collections.abc import Iterable
+
 from django.db import models
+from django.db.models.base import ModelBase as DjangoModelClass
 
 from core.models import ModelBase
 
 
 class Category(ModelBase):
+    is_selected: bool = False
+
     # Definindo as opções de tipo usando TextChoices (Boas práticas do Django modern)
     class Type(models.TextChoices):
         PRODUCT = 'PRODUCT', 'Produto'
@@ -19,7 +24,7 @@ class Category(ModelBase):
         verbose_name_plural = 'Categorias'
         ordering = ['name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name} ({self.get_type_display()})'
 
 
@@ -31,11 +36,12 @@ class Brand(ModelBase):
         verbose_name_plural = 'Marcas'
         ordering = ['name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class Product(ModelBase):
+    is_selected: bool = False
     name = models.CharField(max_length=120, verbose_name='Nome')
     sku = models.CharField(max_length=50, unique=True, verbose_name='SKU (Código)')
     category = models.ForeignKey(
@@ -61,13 +67,24 @@ class Product(ModelBase):
         verbose_name_plural = 'Produtos'
         ordering = ['name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.sku} - {self.name}'
 
-    def save(self, *args, **kwargs):
+    def save(
+        self,
+        force_insert: bool | tuple[DjangoModelClass, ...] = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: Iterable[str] | None = None,
+    ) -> None:
         # Automatização: Se a categoria for SERVIÇO, marca o produto como serviço automaticamente
         if self.category and self.category.type == Category.Type.SERVICE:
             self.is_service = True
         else:
             self.is_service = False
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )

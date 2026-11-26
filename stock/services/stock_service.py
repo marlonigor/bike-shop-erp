@@ -5,6 +5,8 @@ Este serviço encapsula toda a lógica de movimentação de estoque,
 garantindo rastreabilidade e validação de regras de negócio.
 """
 
+from uuid import UUID
+
 from django.db import transaction
 
 from catalog.models import Product
@@ -27,7 +29,7 @@ class StockService:
         warehouse: Warehouse,
         quantity: int,
         reference_type: str = StockMovement.ReferenceType.MANUAL,
-        reference_id=None,
+        reference_id: UUID | None = None,
         reason: str = '',
     ) -> StockMovement:
         """
@@ -73,7 +75,7 @@ class StockService:
         warehouse: Warehouse,
         quantity: int,
         reference_type: str = StockMovement.ReferenceType.MANUAL,
-        reference_id=None,
+        reference_id: UUID | None = None,
         reason: str = '',
     ) -> StockMovement:
         """

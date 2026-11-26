@@ -5,6 +5,7 @@ from core.models import ModelBase
 
 
 class Warehouse(ModelBase):
+    is_selected: bool = False
     name = models.CharField(max_length=100, verbose_name='Nome')
     location = models.CharField(max_length=100, verbose_name='Localização')
 
@@ -13,7 +14,7 @@ class Warehouse(ModelBase):
         verbose_name_plural = 'Depósitos'
         ordering = ['name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -39,7 +40,7 @@ class Stock(ModelBase):
         ]
         ordering = ['product__name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.product} em {self.warehouse}: {self.quantity}'
 
 
@@ -84,5 +85,5 @@ class StockMovement(ModelBase):
         verbose_name_plural = 'Movimentações de Estoque'
         ordering = ['-created_at']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.get_movement_type_display()} - {self.product.sku} ({self.quantity})'

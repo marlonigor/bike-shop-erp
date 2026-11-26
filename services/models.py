@@ -1,7 +1,9 @@
+from collections.abc import Iterable
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.base import ModelBase as DjangoModelClass
 from django.utils import timezone
 
 from catalog.models import Product
@@ -232,10 +234,21 @@ class ServiceOrderItem(ModelBase):
         """Indica se o item e mao de obra ou servico imaterial."""
         return self.product.is_service
 
-    def save(self, *args, **kwargs) -> None:
+    def save(
+        self,
+        force_insert: bool | tuple[DjangoModelClass, ...] = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: Iterable[str] | None = None,
+    ) -> None:
         """Garante consistencia do preco total no salvamento."""
         self.total_price = self.unit_price * self.quantity
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class ServiceOrderChecklist(ModelBase):

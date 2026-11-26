@@ -28,5 +28,5 @@ class Supplier(ModelBase):
         verbose_name_plural = 'Fornecedores'
         ordering = ['name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

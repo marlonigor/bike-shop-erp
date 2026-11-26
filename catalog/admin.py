@@ -4,20 +4,20 @@ from .models import Brand, Category, Product
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(admin.ModelAdmin[Category]):
     list_display = ('name', 'type', 'created_at')
     search_fields = ('name',)
     list_filter = ('type',)
 
 
 @admin.register(Brand)
-class BrandAdmin(admin.ModelAdmin):
+class BrandAdmin(admin.ModelAdmin[Brand]):
     list_display = ('name', 'created_at')
     search_fields = ('name',)
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(admin.ModelAdmin[Product]):
     list_display = ('sku', 'name', 'category', 'brand', 'price', 'is_service', 'active')
     list_filter = ('category', 'brand', 'active', 'is_service')
     search_fields = ('name', 'sku')

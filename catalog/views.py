@@ -2,7 +2,7 @@ import json
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import TypedDict
 
 from django.contrib import messages
 from django.db.models import IntegerField, ProtectedError, Q, QuerySet, Sum, Value
@@ -10,8 +10,23 @@ from django.db.models.functions import Coalesce
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from sales.models import SaleItem
+from stock.models import Stock
+
 from .forms import BrandForm, CategoryForm, ProductForm
 from .models import Brand, Category, Product
+
+
+class ProductMetrics(TypedDict):
+    """Indicadores da ficha de produto; exemplo: margem, saldos e histórico de vendas."""
+
+    product: Product
+    margin: Decimal
+    stock_by_warehouse: list[Stock]
+    total_stock: int
+    sales_history: list[SaleItem]
+    total_sold: int
+    total_revenue: Decimal
 
 
 @dataclass(frozen=True)
@@ -36,7 +51,7 @@ def _hx_or_redirect(
     if message:
         messages.success(request, message)
     if request.headers.get('HX-Request'):
-        payload: dict[str, Any] = {trigger: True}
+        payload: dict[str, bool | dict[str, str]] = {trigger: True}
         if message:
             payload['showToast'] = {'message': message, 'type': 'success'}
         return HttpResponse(status=204, headers={'HX-Trigger': json.dumps(payload)})
@@ -191,11 +206,8 @@ def product_delete(request: HttpRequest, pk: uuid.UUID) -> HttpResponse:
     return _hx_or_redirect(request, 'productListChanged', 'catalog:product_list', message=msg)
 
 
-def _build_product_metrics(product: Product) -> dict[str, Any]:
+def _build_product_metrics(product: Product) -> ProductMetrics:
     """Calcula indicadores financeiros e operacionais consolidados do produto."""
-    from sales.models import SaleItem
-    from stock.models import Stock
-
     margin = (
         ((product.price - product.cost) / product.price * 100)
         if product.price > 0

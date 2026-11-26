@@ -1,10 +1,20 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
+from decimal import Decimal
+from typing import Unpack
+
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
+from django.utils.datastructures import MultiValueDict
+
+from core.form_types import ModelFormArguments
 
 from .models import Brand, Category, Product
 
 
-class ProductForm(forms.ModelForm):
+class ProductForm(forms.ModelForm[Product]):
     """Formulário para criação e edição de produtos."""
 
     class Meta:
@@ -33,25 +43,38 @@ class ProductForm(forms.ModelForm):
             'price': 'Preço de Venda (R$)',
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        data: Mapping[str, object] | None = None,
+        files: MultiValueDict[str, UploadedFile[bytes]] | None = None,
+        **kwargs: Unpack[ModelFormArguments[Product]],
+    ) -> None:
+        super().__init__(data, files, **kwargs)
         self.fields['brand'].required = False
         self.fields['cost'].required = True
 
-    def clean(self):
-        cleaned_data = super().clean()
+    def clean(self) -> dict[str, object]:
+        cleaned_data: dict[str, object] = super().clean() or {}
         cost = cleaned_data.get('cost')
         price = cleaned_data.get('price')
 
-        if cost and price and price < cost:
+        if (
+            isinstance(cost, Decimal)
+            and isinstance(price, Decimal)
+            and cost
+            and price
+            and price < cost
+        ):
             raise ValidationError(
                 {'price': 'O preço de venda não pode ser menor que o preço de custo.'}
             )
 
         return cleaned_data
 
-    def clean_sku(self):
+    def clean_sku(self) -> str:
         sku = self.cleaned_data.get('sku')
+        if not isinstance(sku, str):
+            raise ValidationError('SKU inválido: esperado texto, por exemplo PNEU-001.')
 
         # Verificar duplicidade (excluindo o próprio produto na edição)
         queryset = Product.objects.filter(sku=sku)
@@ -64,7 +87,7 @@ class ProductForm(forms.ModelForm):
         return sku.upper()  # Normalizar para maiúsculas
 
 
-class CategoryForm(forms.ModelForm):
+class CategoryForm(forms.ModelForm[Category]):
     """Formulário para criação e edição de categorias."""
 
     class Meta:
@@ -82,7 +105,7 @@ class CategoryForm(forms.ModelForm):
         }
 
 
-class BrandForm(forms.ModelForm):
+class BrandForm(forms.ModelForm[Brand]):
     """Formulário para criação e edição de marcas."""
 
     class Meta:

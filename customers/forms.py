@@ -3,7 +3,7 @@ from django import forms
 from .models import Customer
 
 
-class CustomerForm(forms.ModelForm):
+class CustomerForm(forms.ModelForm[Customer]):
     class Meta:
         model = Customer
         fields = ['name', 'email', 'phone', 'document', 'active']

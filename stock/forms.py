@@ -45,7 +45,7 @@ class StockAdjustmentForm(forms.Form):
         ),
     )
 
-    def clean(self):
-        cleaned_data = super().clean()
+    def clean(self) -> dict[str, object]:
+        cleaned_data: dict[str, object] = super().clean() or {}
         # Aqui poderíamos validar regras complexas entre depósito e produto se necessário
         return cleaned_data

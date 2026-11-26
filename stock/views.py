@@ -1,7 +1,6 @@
 """Controladores web para gestao e movimentacao de estoque."""
 
 import json
-from typing import Any
 
 from django.contrib import messages
 from django.core.paginator import Page, Paginator
@@ -24,7 +23,7 @@ def _hx_or_redirect(
     if message:
         messages.success(request, message)
     if request.headers.get('HX-Request'):
-        payload: dict[str, Any] = {trigger: True}
+        payload: dict[str, bool | dict[str, str]] = {trigger: True}
         if message:
             payload['showToast'] = {'message': message, 'type': 'success'}
         return HttpResponse(status=204, headers={'HX-Trigger': json.dumps(payload)})
@@ -84,7 +83,7 @@ def _execute_movement(
 def stock_movement(request: HttpRequest) -> HttpResponse:
     """Processa entrada e saida de mercadorias no estoque."""
     if request.method != 'POST':
-        context = {
+        context: dict[str, object] = {
             'products': Product.objects.filter(active=True),
             'warehouses': Warehouse.objects.all(),
         }
@@ -145,14 +144,18 @@ def _filter_movements(request: HttpRequest) -> QuerySet[StockMovement]:
     return movements
 
 
-def _paginate_movements(request: HttpRequest, movements: QuerySet[StockMovement]) -> Page:
+def _paginate_movements(
+    request: HttpRequest, movements: QuerySet[StockMovement]
+) -> Page[StockMovement]:
     """Aplica paginacao de 20 registros por pagina nas movimentacoes."""
     paginator = Paginator(movements, 20)
     page_number = request.GET.get('page', '1')
     return paginator.get_page(page_number)
 
 
-def _build_history_context(request: HttpRequest, page_obj: Page) -> dict[str, object]:
+def _build_history_context(
+    request: HttpRequest, page_obj: Page[StockMovement]
+) -> dict[str, object]:
     """Monta o contexto para renderizacao do historico com filtros ativos."""
     selected_prod = request.GET.get('product', '')
     products = list(Product.objects.filter(active=True).order_by('name'))

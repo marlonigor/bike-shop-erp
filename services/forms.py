@@ -1,16 +1,23 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from decimal import Decimal
+from typing import Unpack
 
 from django import forms
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import UploadedFile
+from django.utils.datastructures import MultiValueDict
 
 from catalog.models import Product
+from core.form_types import ModelFormArguments, set_choice_queryset
 from customers.models import Customer
 from stock.models import Warehouse
 
 from .models import ServiceOrder, ServiceOrderChecklist, ServiceOrderItem
 
 
-class ServiceOrderForm(forms.ModelForm):
+class ServiceOrderForm(forms.ModelForm[ServiceOrder]):
     """Formulario para abertura e edicao cadastral de Ordens de Servico."""
 
     class Meta:
@@ -76,12 +83,19 @@ class ServiceOrderForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['customer'].queryset = Customer.objects.filter(active=True).order_by('name')
-        self.fields['warehouse'].queryset = Warehouse.objects.all().order_by('name')
-        self.fields['mechanic'].queryset = User.objects.filter(is_active=True).order_by(
-            'first_name'
+    def __init__(
+        self,
+        data: Mapping[str, object] | None = None,
+        files: MultiValueDict[str, UploadedFile[bytes]] | None = None,
+        **kwargs: Unpack[ModelFormArguments[ServiceOrder]],
+    ) -> None:
+        super().__init__(data, files, **kwargs)
+        set_choice_queryset(
+            self.fields['customer'], Customer.objects.filter(active=True).order_by('name')
+        )
+        set_choice_queryset(self.fields['warehouse'], Warehouse.objects.all().order_by('name'))
+        set_choice_queryset(
+            self.fields['mechanic'], User.objects.filter(is_active=True).order_by('first_name')
         )
         self.fields['mechanic'].required = False
         self.fields['technical_diagnosis'].required = False
@@ -91,7 +105,7 @@ class ServiceOrderForm(forms.ModelForm):
         self.fields['notes'].required = False
 
 
-class ProductModelChoiceField(forms.ModelChoiceField):
+class ProductModelChoiceField(forms.ModelChoiceField[Product]):
     """Campo de selecao que prefixa se o produto e peca fisica ou mao de obra."""
 
     def label_from_instance(self, obj: Product) -> str:
@@ -99,7 +113,7 @@ class ProductModelChoiceField(forms.ModelChoiceField):
         return f'{tag} {obj.name} - R$ {obj.price:.2f}'
 
 
-class ServiceOrderItemForm(forms.ModelForm):
+class ServiceOrderItemForm(forms.ModelForm[ServiceOrderItem]):
     """Formulario para adicao de pecas ou servicos a uma Ordem de Servico."""
 
     product = ProductModelChoiceField(
@@ -122,26 +136,32 @@ class ServiceOrderItemForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.filter(active=True).order_by(
-            'is_service', 'name'
+    def __init__(
+        self,
+        data: Mapping[str, object] | None = None,
+        files: MultiValueDict[str, UploadedFile[bytes]] | None = None,
+        **kwargs: Unpack[ModelFormArguments[ServiceOrderItem]],
+    ) -> None:
+        super().__init__(data, files, **kwargs)
+        set_choice_queryset(
+            self.fields['product'],
+            Product.objects.filter(active=True).order_by('is_service', 'name'),
         )
         self.fields['unit_price'].required = False
         self.fields['notes'].required = False
 
-    def clean(self):
-        cleaned_data = super().clean()
+    def clean(self) -> dict[str, object]:
+        cleaned_data: dict[str, object] = super().clean() or {}
         product = cleaned_data.get('product')
         unit_price = cleaned_data.get('unit_price')
 
-        if product and (unit_price is None or unit_price == Decimal('0.00')):
+        if isinstance(product, Product) and (unit_price is None or unit_price == Decimal('0.00')):
             cleaned_data['unit_price'] = product.price
 
         return cleaned_data
 
 
-class ServiceOrderChecklistForm(forms.ModelForm):
+class ServiceOrderChecklistForm(forms.ModelForm[ServiceOrderChecklist]):
     """Formulario para inspecao tecnica e preenchimento de checklist de entrada da bike."""
 
     class Meta:

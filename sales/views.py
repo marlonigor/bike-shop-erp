@@ -10,12 +10,13 @@ from stock.models import Warehouse
 from stock.services import StockService
 
 from .services import SalesService
+from .types import CartItem, SaleItemInput
 
 
-def _cart_context(request):
+def _cart_context(request: HttpRequest) -> tuple[list[CartItem], Decimal]:
     """Helper: retorna cart e cart_total da sessão."""
-    cart = request.session.get('cart', [])
-    cart_total = sum(Decimal(str(item['total'])) for item in cart)
+    cart: list[CartItem] = request.session.get('cart', [])
+    cart_total = sum((Decimal(str(item['total'])) for item in cart), Decimal('0.00'))
     return cart, cart_total
 
 
@@ -60,7 +61,7 @@ def product_search(request: HttpRequest) -> HttpResponse:
     return render(request, 'sales/partials/product_search_results.html', {'results': results})
 
 
-def cart_add(request):
+def cart_add(request: HttpRequest) -> HttpResponse:
     """Adiciona item ao carrinho (HTMX)."""
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
@@ -105,7 +106,7 @@ def cart_add(request):
     return HttpResponse(status=400)
 
 
-def cart_remove(request):
+def cart_remove(request: HttpRequest) -> HttpResponse:
     """Remove um item do carrinho por product_id (HTMX)."""
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
@@ -130,7 +131,7 @@ def cart_remove(request):
     return HttpResponse(status=400)
 
 
-def cart_update(request):
+def cart_update(request: HttpRequest) -> HttpResponse:
     """Atualiza a quantidade de um item no carrinho (HTMX)."""
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
@@ -167,7 +168,7 @@ def cart_update(request):
     return HttpResponse(status=400)
 
 
-def cart_clear(request):
+def cart_clear(request: HttpRequest) -> HttpResponse:
     """Limpa todos os itens do carrinho (HTMX)."""
     if request.method == 'POST':
         request.session['cart'] = []
@@ -204,7 +205,7 @@ def sale_complete(request: HttpRequest) -> HttpResponse:
     warehouse = get_object_or_404(Warehouse, pk=warehouse_id)
 
     # Montar items_data
-    items_data = []
+    items_data: list[SaleItemInput] = []
     for item in cart:
         product = Product.objects.get(pk=item['product_id'])
         items_data.append(
